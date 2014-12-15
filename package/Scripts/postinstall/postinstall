@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "==============================================="
+echo "repair permissions"
+echo "==============================================="
+
+chown -R root:wheel /System/Library/Extensions
