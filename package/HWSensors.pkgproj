@@ -474,8 +474,10 @@
 				<string>HWSensors</string>
 				<key>OVERWRITE_PERMISSIONS</key>
 				<true/>
+				<key>RELOCATABLE</key>
+				<true/>
 				<key>VERSION</key>
-				<string>1.1</string>
+				<string>1.2</string>
 			</dict>
 			<key>UUID</key>
 			<string>A80E8736-C206-49B9-860C-FE01466B0E17</string>
@@ -807,7 +809,7 @@
 				</dict>
 			</array>
 			<key>NAME</key>
-			<string>HWSensors</string>
+			<string>HWSensors3</string>
 		</dict>
 	</dict>
 	<key>TYPE</key>
