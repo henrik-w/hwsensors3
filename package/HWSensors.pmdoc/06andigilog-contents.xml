@@ -1,1 +1,1 @@
-<pkg-contents spec="1.12"><f n="Andigilog.kext" o="root" g="wheel" p="16877" pt="/Users/slice/Projects/hwsensors3/package/Extensions/Andigilog.kext" m="false" t="file"><f n="Contents" o="root" g="wheel" p="16877"><f n="Info.plist" o="root" g="wheel" p="33261"/><f n="MacOS" o="root" g="wheel" p="16877"><f n="Andigilog" o="root" g="wheel" p="33261"/></f><f n="Resources" o="root" g="wheel" p="16877"><f n="en.lproj" o="root" g="wheel" p="16877"><f n="InfoPlist.strings" o="root" g="wheel" p="33261"/></f></f></f></f></pkg-contents>
+<pkg-contents spec="1.12"/>
