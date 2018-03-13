@@ -1,0 +1,165 @@
+#!/bin/bash
+
+# this script try to install kexts (if any) in /System/Libray/Extensions or
+# in EFI/CLOVER/kexts/Other if "Install in the ESP" was chosen.
+#
+# Backup:
+# $KEXTS_TO_REMOVE contains all the Plugins you may have installed (also from other projects).
+# These kexts are searched in all subdirectories of /S/L/E and moved to a backup folder in the root
+# of the target Volume. New ones are copied inside the new FakeSMC.kext/Contents/PlugIns/,
+# for this you will see only the FakeSMC.kext!
+
+partutil="./partutil"
+exitcode=0
+
+if [ "$3" == "/" ]; then
+    TARGET="${3}"
+else
+    TARGET="${3}/"
+fi
+
+if [[ -d "${TARGET}"tmp/HWSensor ]]; then
+  TEMPDIR="${TARGET}tmp/HWSensor"
+elif [[ -d "${TARGET}"private/tmp/HWSensor ]]; then
+  TEMPDIR="${TARGET}private/tmp/HWSensor"
+else
+  echo "Fatal Error: tmp directory not found." && exit 1
+fi
+
+# FakeSMC.kext must be always the first item of the below array!
+KEXTS_TO_REMOVE=(
+FakeSMC.kext
+ADT7470.kext
+Andigilog.kext
+ACPIMonitor.kext
+ACPISensors.kext
+AmdCPUMonitor.kext
+CPUSensors.kext
+DIMMSensor.kext
+F718x.kext
+GeforceSensor.kext
+GPUSensors.kext
+HWInfo.kext
+ICHSBus.kext
+IntelCPUMonitor.kext
+ITEIT87x.kext
+LPCSensors.kext
+NVClockX.kext
+PC8739x.kext
+RadeonMonitor.kext
+SMIMonitor.kext
+VoodooBatterySMC.kext
+W836x.kext
+X3100.kext
+)
+
+backupKextsAtPath() {
+cd "${1}"
+local stamp=$(date "+%F-%T")
+for e in "${KEXTS_TO_REMOVE[@]}"
+do
+  find . -name "${e}" -print0 | while read -d $'\0' file
+  do
+    mkdir -p "${TEMPDIR}"/Backup
+    cp -R "${e}" "${TEMPDIR}"/Backup/
+    rm -rf "${e}"
+  done
+done
+if [[ -d "${TEMPDIR}"/Backup ]]; then
+  mkdir -p "${TARGET}HWSensor.Backups"
+  mv "${TEMPDIR}"/Backup "${TARGET}HWSensor.Backups/${stamp}"
+fi
+}
+
+if [[ -d "${TEMPDIR}"/FakeSMC.kext ]]; then
+  if [[ -f "${TEMPDIR}"/ESP ]]; then
+    rm -f "${TEMPDIR}"/ESP
+    # try to install to the ESP
+    DiskDevice=$(LC_ALL=C diskutil info "${3}" 2>/dev/null | \
+                                  sed -n 's/.*Part [oO]f Whole: *//p')
+
+    if [[ -z "$DiskDevice" ]]; then
+      exitcode=1
+      msg="Error: can't find volume with the name ${TARGET}"
+      echo $msg
+      echo -e $msg > "${TEMPDIR}"/ReadMe.txt
+      open "${TEMPDIR}"
+      open "${TEMPDIR}"/ReadMe.txt
+      exit $exitcode
+    fi
+
+    ESPDevice=$("$partutil" --find-esp "$DiskDevice")
+    if [[ -z "$ESPDevice" ]]; then
+      exitcode=1
+      msg="No ESP was found for $DiskDevice on \"$TARGET\", aborted."
+      echo $msg
+      echo -e $msg > "${TEMPDIR}"/ReadMe.txt
+      open "${TEMPDIR}"
+      open "${TEMPDIR}"/ReadMe.txt
+      exit $exitcode
+    fi
+
+    ESPMountPoint=$("$partutil" --show-mountpoint "$ESPDevice")
+    if [[ -n "$ESPMountPoint" ]]; then
+      # If already mounted it's okay
+      exitcode=0
+    else
+      # Else try to mount the ESP partition
+      ESPMountPoint="/Volumes/EFI"
+      exitcode=1
+      fstype=$($partutil --show-fstype $ESPDevice)
+      if [[ -n "$fstype" ]]; then
+        [[ ! -d "${ESPMountPoint}" ]] && mkdir -p "${ESPMountPoint}"
+        mount -t $fstype /dev/$ESPDevice "${ESPMountPoint}" 2>&1
+        exitcode=$?
+      fi
+    fi
+
+    if [[ $exitcode -ne 0 ]]; then
+      msg="ERROR: can't mount ESP partition ($ESPDevice)!"
+      echo $msg
+      echo -e $msg > "${TEMPDIR}"/ReadMe.txt
+      open "${TEMPDIR}"
+    else
+      # is Clover installed?
+      if [[ ! -d "${ESPMountPoint}/EFI/CLOVER" ]]; then
+        exitcode=1
+        msg="ERROR: Clover is not installed !\nManual installation required.."
+        echo -e $msg
+        echo -e $msg > "${TEMPDIR}"/ReadMe.txt
+        open "${TEMPDIR}"
+        open "${TEMPDIR}"/ReadMe.txt
+        exit $exitcode
+      fi
+      mkdir -p "${ESPMountPoint}/EFI/CLOVER/kexts/Other"
+      backupKextsAtPath "${ESPMountPoint}/EFI/CLOVER/kexts/Other"
+      cp -R "${TEMPDIR}"/FakeSMC.kext "${ESPMountPoint}/EFI/CLOVER/kexts/Other/"
+      rm -rf "${TEMPDIR}"
+    fi
+  else
+    # install to SLE
+    if [[ -d "${TARGET}"System/Library/Extensions ]]; then
+      backupKextsAtPath "${TARGET}"System/Library/Extensions
+      cd "${TARGET}"System/Library/Extensions
+      # backup all the files
+      cp -R "${TEMPDIR}"/FakeSMC.kext "${TARGET}"System/Library/Extensions/
+      chmod -R 755 "${TARGET}"System/Library/Extensions/FakeSMC.kext
+      chown -R root:wheel "${TARGET}"System/Library/Extensions/FakeSMC.kext
+      touch "${TARGET}"System/Library/Extensions && kextcache -u "${3}"
+      rm -rf "${TEMPDIR}"
+    else
+      rm -rf "${TARGET}HWSensor"
+      mkdir -p "${TARGET}HWSensor"
+      cp -R "${TEMPDIR}"/FakeSMC.kext "${TARGET}HWSensor/"
+      msg="${TARGET}System/Library/Extensions doesn't exit,\n"
+      msg+="so you have to do a manual Installation.\n\n"
+      msg+="Note: kexts PlugIns (may have chosen some of it)\n"
+      msg+="are, in the event, already inside FakeSMC.kext/Contents/PlugIns/."
+      echo -e $msg > "${TARGET}"HWSensor/ReadMe.txt
+      open "${TARGET}"HWSensor
+      open "${TARGET}"HWSensor/ReadMe.txt
+    fi
+  fi
+fi
+
+exit $exitcode

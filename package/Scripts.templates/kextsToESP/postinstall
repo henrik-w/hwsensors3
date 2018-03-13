@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ "$3" == "/" ]; then
+    TARGET="${3}"
+else
+    TARGET="${3}/"
+fi
+
+if [[ -d "${TARGET}"tmp/HWSensor ]]; then
+  TEMPDIR="${TARGET}tmp/HWSensor"
+elif [[ -d "${TARGET}"private/tmp/HWSensor ]]; then
+  TEMPDIR="${TARGET}private/tmp/HWSensor"
+else
+  echo "Fatal Error: tmp directory not found." && exit 1
+fi
+touch "${TEMPDIR}"/ESP

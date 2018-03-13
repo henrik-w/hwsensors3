@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+
+
+
+
+
+
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css"><title></title>
+  
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px Times}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px Times; color: #0000ee}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px Times; min-height: 13.0px}
+    span.s1 {font: 10.0px 'Lucida Grande'}
+    span.s2 {color: #000000}
+    span.s3 {text-decoration: underline}
+  </style></head><body><small><span style="font-family: Times;">Ci sono due modi di installare i kext con questo pachetto:<br>
+<br>
+1) Installare FakeSMC.kext e i suoi plugin in
+/System/Library/Extensions sul Volume selezionato (SIP deve essere
+disabilitato o permettere kexts non firmati).<br>
+<br>
+2) Installare FakeSMC.kext </span></small><small><span style="font-family: Times;">e i suoi plugin in</span></small><small><span style="font-family: Times;"> EFI/CLOVER/kexts/Other sulla ESP relativa al Volume selezionato (Clover deve essere già installato).<br>
+<br>
+Backup:<br>
+Questo pacchetto, ad ogni sessione, rimuove il vecchio FakeSMC.kext ed i suoi plugin, anche provenienti da altri progetti:<br>
+FakeSMC.kext<br>
+ADT7470.kext<br>
+Andigilog.kext<br>
+ACPIMonitor.kext<br>
+ACPISensors.kext<br>
+AmdCPUMonitor.kext<br>
+CPUSensors.kext<br>
+DIMMSensor.kext<br>
+F718x.kext<br>
+GeforceSensor.kext<br>
+GPUSensors.kext<br>
+HWInfo.kext<br>
+ICHSBus.kext<br>
+IntelCPUMonitor.kext<br>
+ITEIT87x.kext<br>
+LPCSensors.kext<br>
+NVClockX.kext<br>
+PC8739x.kext<br>
+RadeonMonitor.kext<br>
+SMIMonitor.kext<br>
+VoodooBatterySMC.kext<br>
+W836x.kext<br>
+X3100.kext<br>
+<br>
+Queste estensioni vengono cercate in tutte le sotto cartelle (all'interno di altri kext) di /System/Library/Extensions (oppure </span></small><small><span style="font-family: Times;">EFI/CLOVER/kexts/Other se l'opzione è stata selezionata</span></small><small><span style="font-family: Times;">) e spostate in una cartella di backup nella root del Volume selezionato.<br>I kext che hai selezionato, se più di uno, verranno copiati in </span></small><small><span style="font-family: Times;">FakeSMC.kext/Contents/PlugIns/, per questo vedrai solo quest'ultimo!</span></small><small><span style="font-family: Times;"><br>
+L'installer penserà a riparare i permessi ed a ricostruire la cache ove necessario.<br>
+<br>
+HWMonitorSMC.app viene installata in /Applications del Volume selezionato.</span></small><br>
+</body></html>

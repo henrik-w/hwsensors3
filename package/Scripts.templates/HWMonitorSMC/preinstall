@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ "$3" == "/" ]; then
+    TARGET="${3}"
+else
+    TARGET="${3}/"
+fi
+
+rm -rf "${TARGET}"Applications/HWMonitorSMC.app

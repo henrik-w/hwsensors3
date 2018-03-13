@@ -1,0 +1,94 @@
+"HWMonitorSMC_title" = "HWMonitorSMC.app v1";
+"HWMonitorSMC_description" = "HWMonitorSMC.app v1 è un'applicatione scritta in objective-c.
+Funziona con tutti gli ultimi Sistemi Operativi e con quelli più vecchi tipo Lion. Vedi anche HWMonitorSMC.app v2.";
+
+"HWMonitorSMC2_title" = "HWMonitorSMC.app v2";
+"HWMonitorSMC2_description" = "HWMonitorSMC.app v2 è un'applicatione scritta in Swift.
+Fornisce più letture di HWMonitorSMC.app v1 (come l'uso della RAM da parte del Sistema e di tutti i core della CPU).
+Funziona sugli ultimi Sistemi partendo da macOS 10.10.";
+
+"Extensions_title" = "Estensioni del kernel";
+"Extensions_description" = "FakeSMC.kext & PlugIns per abilitare la lettura dei sensori.";
+
+"kextsToESP_title" = "Installa i kext nella ESP";
+"kextsToESP_description" = "Se questa opzione viene selezionata il pacchetto installerà i kext nella ESP in EFI/CLOVER/kexts/Other. Nota che per fare questo Clover deve essere già installato!
+Altrimenti, i kext verranno installati in /System/Library/Extensions del Volume scelto.
+
+Backup:
+Questo pacchetto, ad ogni sessione, rimuove il vecchio FakeSMC.kext ed i suoi plugin, anche provenienti da altri progetti:
+FakeSMC.kext
+ADT7470.kext
+Andigilog.kext
+ACPIMonitor.kext
+ACPISensors.kext
+AmdCPUMonitor.kext
+CPUSensors.kext
+DIMMSensor.kext
+F718x.kext
+GeforceSensor.kext
+GPUSensors.kext
+HWInfo.kext
+ICHSBus.kext
+IntelCPUMonitor.kext
+ITEIT87x.kext
+LPCSensors.kext
+NVClockX.kext
+PC8739x.kext
+RadeonMonitor.kext
+SMIMonitor.kext
+VoodooBatterySMC.kext
+W836x.kext
+X3100.kext
+
+Queste estensioni vengono cercate in tutte le sotto cartelle (all'interno di altri kext) in /System/Library/Extensions (oppure EFI/CLOVER/kexts/Other se l'opzione è stata selezionata) e spostate in una cartella di backup nella root del Volume selezionato.
+I kext che hai selezionato, se più di uno, verranno copiate in FakeSMC.kext/Contents/PlugIns/, per questo vedrai solo il FakeSMC.kext!";
+
+"FakeSMC_title" = "FakeSMC.kext";
+"FakeSMC_description" = "Versione di Slice's del driver originariamente inventato da Netkas.";
+
+"CPU_title" = "CPU";
+"CPU_description" = "I Plugins in questo gruppo servono per abilitare le letture dei sensori della CPU.";
+
+"IntelCPUMonitor_title" = "IntelCPUMonitor.kext";
+"IntelCPUMonitor_description" = "Abilita la lettura dei sensori della CPU. Da usare solo con CPU Intel.";
+
+"AmdCPUMonitor_title" = "AmdCPUMonitor.kext";
+"AmdCPUMonitor_description" = "Abilita la lettura dei sensori della CPU. Da usare solo con CPU AMD.";
+
+"GPU_title" = "GPU";
+"GPU_description" = "I Plugins in questo gruppo servono per abilitare le letture dei sensori della scheda video.";
+
+"GeforceSensor_title" = "GeforceSensor.kext";
+"GeforceSensor_description" = "Abilita la lettura dei sensori per le schede video NVidia della serie 4xx, 5xx, ...10xx.";
+
+"NVClockX_title" = "NVClockX.kext";
+"NVClockX_description" = "Abilita la lettura dei sensori per le schede video NVidia della serie 7xxx-9xxx.";
+
+"RadeonMonitor_title" = "RadeonMonitor.kext";
+"RadeonMonitor_description" = "Abilita la lettura dei sensori per le schede video ATI/AMD Radeon HD4xxx - 8xxx, R5-R9 2xx 3xx 4xx 5xx.";
+
+"X3100_title" = "X3100.kext";
+"X3100_description" = "Abilita la lettura dei sensori per la scheda video Intel X3100 con chipset 965M.";
+
+"LPC_title" = "LPC";
+"LPC_description" = "I Plugins in questo gruppo servono per abilitare le letture dei sensori della Scheda Madre.";
+
+"F718x_title" = "F718x.kext";
+"F718x_description" = "Per chip LPC Fintek.";
+
+"ITEIT87x_title" = "ITEIT87x.kext";
+"ITEIT87x_description" = "Per chip LPC ITE, usualmente nelle schede madri Gigabyte.";
+
+"PC8739x_title" = "PC8739x.kext";
+"PC8739x_description" = "Per chip LPC SMC.";
+
+"W836x_title" = "W836x.kext";
+"W836x_description" = "Per chip LPC Winbond o Nuvoton NCT, usualmente nelle schede madri ASUS.";
+
+"ACPIMonitor_title" = "ACPIMonitor.kext";
+"ACPIMonitor_description" = "Installare questo kext non è sufficiente per avere le letture delle ventole o dell'Ambiente:
+deve essere usato con un DSDT modificato apposta. Maggiori informazioni a http://www.insanelymac.com/forum/topic/309328-howto-acpi-access-for-monitoring/.";
+
+"VoodooBatterySMC_title" = "VoodooBatterySMC.kext";
+"VoodooBatterySMC_description" = "Abilita l'icona della Batteria dei Notebook nella barra superiore.
+HWMonitorSMC.app v1 oppure v2 sono in grado di leggere anche il suo voltaggio e l'amperaggio.";

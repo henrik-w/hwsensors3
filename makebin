@@ -1,0 +1,63 @@
+#!/bin/bash
+# vector sigma 2018
+
+export LC_ALL=C
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+SRCROOT="$(dirname $0)"
+cd "${SRCROOT}"
+
+version=$(svn info | grep '^Revision:' | tr -cd [:digit:])
+echo "${bold}** Building HWSensor r${version} **${normal}"
+
+mkdir -p compilations/Extensions
+mkdir -p compilations/HWMonitorSMC
+mkdir -p compilations/HWMonitorSMC2
+mkdir -p compilations/obj
+mkdir -p compilations/dst
+
+cd trunk
+
+# building kernel extensions
+xcodebuild -quiet -project HWSensors.xcodeproj \
+-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
+-sdk macosx -configuration 'Release 10.6' \
+            CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/Extensions" \
+SYMROOT="${SRCROOT}/compilations/obj" \
+DSTROOT="${SRCROOT}/compilations/dst"
+
+# HWMonitorSMC.app v2 can be compiled only with Xcode 9 + and swift
+buildNewHWMonitorSMC() {
+local xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
+case "$xver" in
+    9*) ;;
+    10*) ;;
+    *) echo "HWMonitorSMC.app v2.x requires Xcode 9 +" && return;;
+esac
+
+echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
+cd  "${SRCROOT}/trunk/hwmonitor2"
+xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
+-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
+-sdk macosx \
+-configuration Release \
+CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/HWMonitorSMC2" \
+SYMROOT="${SRCROOT}/compilations/obj" \
+DSTROOT="${SRCROOT}/compilations/dst"
+}
+
+
+# building HWMonitorSMC.app v1.x
+echo "${bold}** Building HWMonitorSMC.app v1 **${normal}"
+cd  "${SRCROOT}/trunk/hwmonitor"
+xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
+-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
+-sdk macosx \
+-configuration Release \
+CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/HWMonitorSMC" \
+SYMROOT="${SRCROOT}/compilations/obj" \
+DSTROOT="${SRCROOT}/compilations/dst"
+
+buildNewHWMonitorSMC

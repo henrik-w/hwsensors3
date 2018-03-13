@@ -1,0 +1,541 @@
+#!/bin/bash
+# vector sigma 2018
+
+SRCROOT="$(dirname $0)"
+cd "${SRCROOT}"
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+ind="    " # indentation
+
+IDENTIFIER="org.slice.hwsensors"
+PROJ_NAME="HWSensors"
+PROJ_VER="3"
+PROJ_RIGHTS="Copyright © HWSensors Project (c) 2010-2018 netkas, slice, usr-sse2, kozlek, navi, THe KiNG, RehabMan, vector sigma and others. All rights reserved."
+PROJ_DEVS="slice"
+
+VERSION=$(svn info | grep '^Revision:' | tr -cd [:digit:])
+KEXTS_PATH="${SRCROOT}/compilations/Extensions"
+PACKAGE_TEMP_DIR="${SRCROOT}/compilations/sym"
+DISTRIBUTION_PATH="${PACKAGE_TEMP_DIR}/Distribution"
+DISTR1_PATH="${PACKAGE_TEMP_DIR}/Distr1"
+DISTR2_PATH="${PACKAGE_TEMP_DIR}/Distr2"
+DISTR3_PATH="${PACKAGE_TEMP_DIR}/Distr3"
+SCRIPTS_PATH="${SRCROOT}/compilations/Scripts.templates"
+ICON_PATH="${SRCROOT}/package/icon.png"
+
+KEXTS=()
+GPU_KEXTS=()
+
+rm -rf "${SRCROOT}/compilations/pkg"
+rm -rf "${SCRIPTS_PATH}"
+rm -rf "${PACKAGE_TEMP_DIR}"
+mkdir "${PACKAGE_TEMP_DIR}"
+mkdir -p "${KEXTS_PATH}"
+
+
+# cpuExt: cpu extensions
+cpuExt=(
+IntelCPUMonitor
+AmdCPUMonitor
+)
+
+# gpuExt: gpu extensions
+gpuExt=(
+GeforceSensor
+NVClockX
+RadeonMonitor
+X3100
+)
+
+# lpcExt: lpc extensions
+lpcExt=(
+F718x
+ITEIT87x
+PC8739x
+W836x
+)
+
+# aloneExt: extensions that aren't under specific group like other above
+aloneExt=(
+ACPIMonitor
+VoodooBatterySMC
+)
+
+makeUtils() {
+echo "[partutil]"
+cd "${SRCROOT}/package/utils/partutil"
+rm -rf "${SRCROOT}/compilations/utils"
+mkdir -p "${SRCROOT}/compilations/utils"
+mkdir -p "${SRCROOT}/compilations/obj"
+mkdir -p "${SRCROOT}/compilations/dst"
+# building kernel extensions
+xcodebuild  -quiet -project partutil.xcodeproj \
+            -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
+            -sdk macosx -configuration 'Release' \
+            CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/utils" \
+            SYMROOT="${SRCROOT}/compilations/obj" \
+            DSTROOT="${SRCROOT}/compilations/dst"
+
+cp -RL "${SRCROOT}/compilations/utils/partutil" "${SCRIPTS_PATH}/Post"
+}
+
+modResourcesAtPath() {
+local pattern=""
+local replacement=""
+if [[ -d "${1}" ]]; then
+    for file in $(find "${1}" -name *.html -type f); do
+        pattern='hwversion'
+        replacement="${PROJ_VER}"
+        sed -i '' "s*${pattern}*${replacement}*g" $file;
+        pattern='hwrevision'
+        replacement="${VERSION}"
+        sed -i '' "s*${pattern}*${replacement}*g" $file;
+        pattern='hwcopyright'
+        replacement="${PROJ_RIGHTS}"
+        sed -i '' "s*${pattern}*${replacement}*g" $file;
+        pattern='hwdevelopers'
+        replacement="${PROJ_DEVS}"
+        sed -i '' "s*${pattern}*${replacement}*g" $file;
+    done
+else
+    echo "Error: \"${1}\" not found!"
+    exit 1
+fi
+}
+
+cleanPAYLOAD() {
+if [[ -d "${1}" ]]; then
+    # Remove any unwanted .DS_Store files.
+    find "${1}"/ -name '*.DS_Store' -type f -delete
+    # Remove any extended attributes (ACEs).
+    xattr -rc "${1}"
+else
+    echo "Error: \"${1}\" not found!"
+    exit 1
+fi
+}
+
+copyKext() {
+local filename=""
+local extension=""
+local dir=""
+if [[ -d "${1}" ]]; then
+    filename=$(basename "${1}")
+    extension="${filename##*.}"
+    filename="${filename%.*}"
+    if [[ "$filename" == FakeSMC ]]; then
+      dir="${PACKAGE_TEMP_DIR}/${filename}/tmp/HWSensor"
+    else
+      dir="${PACKAGE_TEMP_DIR}/${filename}/tmp/HWSensor/FakeSMC.kext/Contents/PlugIns"
+    fi
+    mkdir -p "${dir}"
+    cp -R "${1}" "${dir}"/
+else
+    echo "Error: \"${1}\" not found!"
+    exit 1
+fi
+}
+
+addChoice() {
+local option
+local title=""
+local pkgRoot=""
+local description=""
+local choiceOptions=""
+local choiceSelected=""
+local noPayload=""
+local installLocation="/"
+local ispkg="false"
+
+local pkgInfo="<?xml version=\"1.0\"?>\n<pkg-info format-version=\"2\" "
+local cmd="pkgbuild --quiet"
+
+# Check the arguments.
+for option in "${@}";do
+    case "$option" in
+        --title=*)
+            shift; title="${option#*=}" ;;
+        --is-pkg=*)
+            shift; ispkg="${option#*=}" ;;
+        --no-payload)
+            shift; noPayload="--nopayload" ;;
+        --pkg-root=*)
+            shift; pkgRoot="${option#*=}" ;;
+        --start-selected=*)
+            shift; choiceOptions="$choiceOptions start_selected=\"${option#*=}\"" ;;
+        --start-enabled=*)
+            shift; choiceOptions="$choiceOptions start_enabled=\"${option#*=}\"" ;;
+        --start-visible=*)
+            shift; choiceOptions="$choiceOptions start_visible=\"${option#*=}\"" ;;
+        --enabled=*)
+            shift; choiceOptions="$choiceOptions enabled=\"${option#*=}\"" ;;
+        --selected=*)
+            shift; choiceSelected="selected=\"${option#*=}\"" ;;
+        --visible=*)
+            shift; choiceOptions="$choiceOptions visible=\"${option#*=}\"" ;;
+        -*)
+            echo "Unrecognized addChoice option '$option'" >&2
+            exit 1
+            ;;
+        *)  break ;;
+    esac
+done
+
+if [[ -n "${pkgRoot}" ]] && [[ ! -d "${pkgRoot}" ]]; then
+    echo "Error: addChoice missing,invalid or inexistent parameter \"--pkg-root=${pkgRoot}\""
+    exit 1
+fi
+
+if [[ -z "${title}" ]]; then
+    echo "Error: addChoice missing parameter \"--title=\""
+    exit 1
+fi
+
+choiceOptions=$(echo "${choiceOptions}" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//')
+
+if [[ -z "${choiceOptions}" ]]; then
+    choiceOptions="start_selected=\"false\">"
+fi
+
+echo -e "${ind}<choice" >> "${DISTR2_PATH}"
+echo -e "${ind}id=\"${title}\"" >> "${DISTR2_PATH}"
+echo -e "${ind}${ind}title=\"${title}_title\"" >> "${DISTR2_PATH}"
+if [[ -n "${choiceSelected}" ]]; then
+    echo -e "${ind}${ind}${choiceSelected}" >> "${DISTR2_PATH}"
+fi
+echo -e "${ind}${ind}description=\"${title}_description\"" >> "${DISTR2_PATH}"
+echo -e "${ind}${ind}${choiceOptions}>" >> "${DISTR2_PATH}"
+
+pkgInfo+="identifier=\"${IDENTIFIER}.${title}\" version=\"${VERSION}\""
+
+HEAVINESS="0"
+NUMBFILES="1"
+if [[ "$ispkg" == true ]]; then
+  echo -e "${ind}${ind}<pkg-ref id=\"${IDENTIFIER}.${title}.pkg\"/>"  >> "${DISTR2_PATH}"
+
+  # Build package.
+  echo "[${title}]"
+  if [[ -n "${noPayload}" ]]; then
+    if [[ -n "${noPayload}" ]]; then
+      cmd+=" ${noPayload}"
+    fi
+    if [[ -d "${SCRIPTS_PATH}/${title}" ]]; then
+      cmd+=" --scripts ${SCRIPTS_PATH}/${title}"
+    fi
+    cmd+=" --identifier ${IDENTIFIER}"
+    cmd+=" --version ${VERSION}"
+    cmd+=" ${PACKAGE_TEMP_DIR}/${title}.pkg"
+    eval "${cmd}"
+    pkgutil --expand "${PACKAGE_TEMP_DIR}/${title}.pkg" "${PACKAGE_TEMP_DIR}/${title}.expanded"
+    mkdir "${PACKAGE_TEMP_DIR}/${title}.expanded/tmp"
+    (cd "${PACKAGE_TEMP_DIR}/${title}.expanded/tmp" && find . -print | \
+    cpio -o -z -R root:wheel --format cpio > "${PACKAGE_TEMP_DIR}/${title}.expanded/Payload") 2>&1 | \
+    grep -vE '^[0-9]+\s+blocks?$'
+    mkbom "${PACKAGE_TEMP_DIR}/${title}.expanded/tmp" "${PACKAGE_TEMP_DIR}/${title}.expanded/Bom"
+    rm -rf "${PACKAGE_TEMP_DIR}/${title}.expanded/tmp"
+  else
+    cleanPAYLOAD "${PACKAGE_TEMP_DIR}/${title}"
+    cmd+=" --root ${pkgRoot}"
+    if [[ -d "${SCRIPTS_PATH}/${title}" ]]; then
+      cmd+=" --scripts ${SCRIPTS_PATH}/${title}"
+    fi
+    cmd+=" --identifier ${IDENTIFIER}"
+    cmd+=" --version ${VERSION}"
+    cmd+=" --install-location /"
+    cmd+=" ${PACKAGE_TEMP_DIR}/${title}.pkg"
+    eval "${cmd}"
+    pkgutil --expand "${PACKAGE_TEMP_DIR}/${title}.pkg" "${PACKAGE_TEMP_DIR}/${title}.expanded"
+    HEAVINESS=$(cat "${PACKAGE_TEMP_DIR}/${title}.expanded/PackageInfo" \
+    | grep 'installKBytes=' \
+    | sed -n -e 's/^.*installKBytes=//p' \
+    | tr -cd [:digit:])
+    NUMBFILES=$(cat "${PACKAGE_TEMP_DIR}/${title}.expanded/PackageInfo" \
+    | grep 'numberOfFiles=' \
+    | sed -n -e 's/^.*numberOfFiles=//p' \
+    | tr -cd [:digit:])
+  fi
+
+  pkgInfo+=" install-location=\"/\" auth=\"root\">\n"
+  pkgInfo+="${ind}<payload installKBytes=\"${HEAVINESS}\" numberOfFiles=\"${NUMBFILES}\"/>\n"
+  if [[ -f "${PACKAGE_TEMP_DIR}/${title}.expanded/Scripts/preinstall" ]] || [[ -f "${PACKAGE_TEMP_DIR}/${title}.expanded/Scripts/postinstall" ]]; then
+    pkgInfo+="${ind}<scripts>\n"
+    if [[ -f "${PACKAGE_TEMP_DIR}/${title}.expanded/Scripts/preinstall" ]]; then
+      pkgInfo+="${ind}${ind}<preinstall file=\"./preinstall\"/>\n"
+    fi
+    if [[ -f "${PACKAGE_TEMP_DIR}/${title}.expanded/Scripts/postinstall" ]]; then
+      pkgInfo+="${ind}${ind}<postinstall file=\"./postinstall\"/>\n"
+    fi
+    pkgInfo+="${ind}</scripts>\n"
+  fi
+  pkgInfo+="</pkg-info>"
+  echo -e "${pkgInfo}" > "${PACKAGE_TEMP_DIR}/${title}.expanded/PackageInfo"
+  rm -f "${PACKAGE_TEMP_DIR}/${title}.pkg"
+  mv "${PACKAGE_TEMP_DIR}/${title}.expanded" "${PACKAGE_TEMP_DIR}/${title}.pkg"
+  rm -rf "${PACKAGE_TEMP_DIR}/${title}"
+fi
+
+echo -e "${ind}</choice>\n\n" >> "${DISTR2_PATH}"
+
+if [[ "$ispkg" == true ]]; then
+    D3="${ind}<pkg-ref id=\""
+    D3+="${IDENTIFIER}.${title}.pkg\" "
+    D3+="installKBytes=\"${HEAVINESS}\" version=\"${VERSION}\" "
+    D3+="auth=\"Root\">#${title}.pkg</pkg-ref>"
+    echo -e "${D3}" >> "${DISTR3_PATH}"
+fi
+}
+
+echo "${bold}** Building ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg **${normal}"
+
+FAKE_SELECTED=""
+
+for e in "${cpuExt[@]}"
+do
+  KEXTS+=($e)
+done
+
+for e in "${gpuExt[@]}"
+do
+  GPU_KEXTS+=($e)
+  KEXTS+=($e)
+done
+
+for e in "${lpcExt[@]}"
+do
+  KEXTS+=($e)
+done
+
+for e in "${aloneExt[@]}"
+do
+  KEXTS+=($e)
+done
+
+for e in "${KEXTS[@]}"
+do
+  if [[ -z "${FAKE_SELECTED}" ]]; then
+    FAKE_SELECTED+="choices['${e}'].selected"
+  else
+    FAKE_SELECTED+=" || "
+    FAKE_SELECTED+="choices['${e}'].selected"
+  fi
+done
+
+cp -R "${SRCROOT}/package/Scripts.templates" "${SCRIPTS_PATH}"
+makeUtils
+
+cat << DISTRIBUTION > "${DISTRIBUTION_PATH}"
+<?xml version="1.0"?>
+
+    <installer-gui-script minSpecVersion='1'>
+
+    <options hostArchitectures='i386' allow-external-scripts='no'/>
+    <domains enable_anywhere="true"/>
+
+    <welcome file='Welcome.html'/>
+    <readme file='Description.html'/>
+    <conclusion file="Conclusion.html"/>
+    <background file='background.jpg' alignment='center' scaling='tofit'/>
+
+    <title>${PROJ_NAME}-${PROJ_VER} r${VERSION}</title>
+    <choices-outline>
+DISTRIBUTION
+
+echo -e "${ind}${ind}${ind}<line choice=\"Pre\"/>" >> "${DISTR1_PATH}"
+addChoice --title=Pre \
+          --visible=false \
+          --selected=true \
+          --is-pkg=true \
+          --no-payload
+
+appscount=0
+if [[ -d "${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app" ]]; then
+((appscount+=1))
+fi
+if [[ -d "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC.app" ]]; then
+((appscount+=1))
+fi
+
+if [[ -d "${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app" ]]; then
+  rm -rf "${PACKAGE_TEMP_DIR}/HWMonitorSMC"
+  mkdir -p "${PACKAGE_TEMP_DIR}/HWMonitorSMC/Applications"
+  cp -R "${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app" "${PACKAGE_TEMP_DIR}/HWMonitorSMC/Applications/"
+  echo -e "${ind}${ind}${ind}<line choice=\"HWMonitorSMC\"/>" >> "${DISTR1_PATH}"
+
+  if [[ "$appscount" -eq "2" ]]; then
+    addChoice --title=HWMonitorSMC \
+              --start-selected=false \
+              --selected="choices['HWMonitorSMC'].selected &amp;&amp; !choices['HWMonitorSMC2'].selected" \
+              --pkg-root="${PACKAGE_TEMP_DIR}/HWMonitorSMC" \
+              --is-pkg=true
+  else
+    addChoice --title=HWMonitorSMC \
+              --start-selected=false \
+              --pkg-root="${PACKAGE_TEMP_DIR}/HWMonitorSMC" \
+              --is-pkg=true
+  fi
+fi
+
+if [[ -d "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC.app" ]]; then
+  rm -rf "${PACKAGE_TEMP_DIR}/HWMonitorSMC2"
+  mkdir -p "${PACKAGE_TEMP_DIR}/HWMonitorSMC2/Applications"
+  cp -R "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC.app" "${PACKAGE_TEMP_DIR}/HWMonitorSMC2/Applications/"
+  echo -e "${ind}${ind}${ind}<line choice=\"HWMonitorSMC2\"/>" >> "${DISTR1_PATH}"
+  if [[ "$appscount" -eq "2" ]]; then
+    addChoice --title=HWMonitorSMC2 \
+              --start-selected=false \
+              --selected="choices['HWMonitorSMC2'].selected &amp;&amp; !choices['HWMonitorSMC'].selected" \
+              --pkg-root="${PACKAGE_TEMP_DIR}/HWMonitorSMC2" \
+              --is-pkg=true
+  else
+    addChoice --title=HWMonitorSMC2 \
+              --start-selected=false \
+              --pkg-root="${PACKAGE_TEMP_DIR}/HWMonitorSMC2" \
+              --is-pkg=true
+  fi
+fi
+
+echo -e "${ind}${ind}${ind}<line choice=\"kextsToSLE\"/>" >> "${DISTR1_PATH}"
+addChoice --title=kextsToSLE \
+          --visible=false \
+          --start-selected=true \
+          --selected="!choices['kextsToESP'].selected" \
+          --is-pkg=true \
+          --no-payload
+
+echo -e "${ind}${ind}<line choice=\"Extensions\">" >> "${DISTR1_PATH}"
+addChoice --title=Extensions --start-selected=false
+
+echo -e "${ind}${ind}${ind}<line choice=\"FakeSMC\"/>" >> "${DISTR1_PATH}"
+copyKext "${KEXTS_PATH}/FakeSMC.kext"
+addChoice --title=FakeSMC \
+          --start-selected=false \
+          --pkg-root="${PACKAGE_TEMP_DIR}/FakeSMC" \
+          --is-pkg=true \
+          --selected="(${FAKE_SELECTED}) || choices['FakeSMC'].selected || choices['kextsToESP'].selected"
+
+if [[ "${#cpuExt[@]}" -ge "1" ]]; then
+    echo -e "${ind}${ind}${ind}<line choice=\"CPU\">" >> "${DISTR1_PATH}"
+    addChoice --title=CPU --start-selected=false
+    for e in "${cpuExt[@]}"
+    do
+        echo -e "${ind}${ind}${ind}${ind}<line choice=\"${e}\"/>" >> "${DISTR1_PATH}"
+        copyKext "${KEXTS_PATH}/${e}.kext"
+        if [[ "$e" == IntelCPUMonitor ]]; then
+          addChoice --title=${e} \
+                    --start-selected=false \
+                    --pkg-root="${PACKAGE_TEMP_DIR}/${e}" --is-pkg=true \
+                    --selected="(choices['${e}'].selected &amp;&amp; choices['FakeSMC'].selected) &amp;&amp; !choices['AmdCPUMonitor'].selected"
+        elif [[ "$e" == AmdCPUMonitor ]]; then
+          addChoice --title=${e} \
+                    --start-selected=false \
+                    --pkg-root="${PACKAGE_TEMP_DIR}/${e}" --is-pkg=true \
+                    --selected="(choices['${e}'].selected &amp;&amp; choices['FakeSMC'].selected) &amp;&amp; !choices['IntelCPUMonitor'].selected"
+        else
+          addChoice --title=${e} \
+                    --start-selected=false \
+                    --pkg-root="${PACKAGE_TEMP_DIR}/${e}" \
+                    --is-pkg=true
+        fi
+    done
+    echo -e "${ind}${ind}${ind}</line>" >> "${DISTR1_PATH}"
+fi
+
+if [[ "${#gpuExt[@]}" -ge "1" ]]; then
+  echo -e "${ind}${ind}${ind}<line choice=\"GPU\">" >> "${DISTR1_PATH}"
+  addChoice --title=GPU --start-selected=false
+  for e in "${gpuExt[@]}"
+  do
+    echo -e "${ind}${ind}${ind}${ind}<line choice=\"${e}\"/>" >> "${DISTR1_PATH}"
+    copyKext "${KEXTS_PATH}/${e}.kext"
+    GPUKEXT_SELECTED="(choices['${e}'].selected &amp;&amp; choices['FakeSMC'].selected) &amp;&amp; !("
+    for ex in "${gpuExt[@]}"
+    do
+      if [[ "$ex" != $e ]]; then
+        GPUKEXT_SELECTED+="choices['${ex}'].selected || "
+      fi
+    done
+    GPUKEXT_SELECTED+=")"
+    GPUKEXT_SELECTED=$(echo "${GPUKEXT_SELECTED}" | sed -e 's/selected || )/selected)/g')
+    if [[ "${GPUKEXT_SELECTED}" != "choices['FakeSMC'].selected &amp;&amp; !(" ]]; then
+      addChoice --title=${e} \
+                --start-selected=false \
+                --pkg-root="${PACKAGE_TEMP_DIR}/${e}" \
+                --is-pkg=true \
+                --selected="${GPUKEXT_SELECTED}"
+    else
+      addChoice --title=${e} \
+                --start-selected=false \
+                --pkg-root="${PACKAGE_TEMP_DIR}/${e}" \
+                --is-pkg=true
+    fi
+  done
+  echo -e "${ind}${ind}${ind}</line>" >> "${DISTR1_PATH}"
+fi
+
+if [[ "${#lpcExt[@]}" -ge "1" ]]; then
+    echo -e "${ind}${ind}${ind}<line choice=\"LPC\">" >> "${DISTR1_PATH}"
+    addChoice --title=LPC --start-selected=false
+    for e in "${lpcExt[@]}"
+    do
+        echo -e "${ind}${ind}${ind}${ind}<line choice=\"${e}\"/>" >> "${DISTR1_PATH}"
+        copyKext "${KEXTS_PATH}/${e}.kext"
+        addChoice --title=${e} \
+                  --start-selected=false \
+                  --pkg-root="${PACKAGE_TEMP_DIR}/${e}" \
+                  --is-pkg=true \
+                  --selected="choices['${e}'].selected &amp;&amp; choices['FakeSMC'].selected"
+    done
+    echo -e "${ind}${ind}${ind}</line>" >> "${DISTR1_PATH}"
+fi
+
+if [[ "${#aloneExt[@]}" -ge "1" ]]; then
+    for e in "${aloneExt[@]}"
+    do
+        echo -e "${ind}${ind}<line choice=\"${e}\"/>" >> "${DISTR1_PATH}"
+        copyKext "${KEXTS_PATH}/${e}.kext"
+        addChoice --title=${e} \
+                  --start-selected=false \
+                  --pkg-root="${PACKAGE_TEMP_DIR}/${e}" \
+                  --is-pkg=true \
+                  --selected="choices['${e}'].selected &amp;&amp; choices['FakeSMC'].selected"
+    done
+fi
+
+echo -e "${ind}</line>" >> "${DISTR1_PATH}"
+
+echo -e "${ind}${ind}${ind}<line choice=\"kextsToESP\"/>" >> "${DISTR1_PATH}"
+addChoice --title=kextsToESP \
+          --start-selected=false \
+          --visible="choices['FakeSMC'].selected" \
+          --selected="!choices['kextsToSLE'].selected &amp;&amp; choices['FakeSMC'].selected" \
+          --is-pkg=true \
+          --no-payload
+
+echo -e "${ind}${ind}<line choice=\"Post\"/>" >> "${DISTR1_PATH}"
+addChoice --title=Post \
+          --visible=false \
+          --selected=true \
+          --is-pkg=true \
+          --no-payload
+
+echo -e "${ind}</choices-outline>" >> "${DISTR1_PATH}"
+
+cat "${DISTR1_PATH}" >> "${DISTRIBUTION_PATH}"
+cat "${DISTR2_PATH}" >> "${DISTRIBUTION_PATH}"
+cat "${DISTR3_PATH}" >> "${DISTRIBUTION_PATH}"
+echo -e "</installer-gui-script>" >> "${DISTRIBUTION_PATH}"
+
+rm -f "${DISTR1_PATH}"
+rm -f "${DISTR2_PATH}"
+rm -f "${DISTR3_PATH}"
+
+rm -rf "${SRCROOT}/compilations/package"
+mkdir "${SRCROOT}/compilations/package"
+cp -R  "${SRCROOT}/package/Resources" "${PACKAGE_TEMP_DIR}"
+modResourcesAtPath "${PACKAGE_TEMP_DIR}/Resources"
+pkgutil --flatten "${PACKAGE_TEMP_DIR}" "${SRCROOT}/compilations/package/${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg" || exit 1
+# icon
+"${SRCROOT}/package/seticon.py" "${ICON_PATH}" "${SRCROOT}/compilations/package/${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg"
+open "${SRCROOT}/compilations/package"
+exit 0

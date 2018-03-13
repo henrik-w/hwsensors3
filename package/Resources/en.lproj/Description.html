@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+
+
+
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css"><title></title>
+  
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px Times}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px Times; color: #0000ee}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px Times; min-height: 13.0px}
+    span.s1 {font: 10.0px 'Lucida Grande'}
+    span.s2 {color: #000000}
+    span.s3 {text-decoration: underline}
+  </style></head><body><small><span style="font-family: Times;">You can do the Installation in two ways:<br>
+<br>
+1) Install the FakeSMC.kext and its plugins in
+/System/Library/Extensions of the target Volume (SIP must be disable or
+allow unsigned kexts).<br>
+<br>
+2) Install the FakeSMC.kext and its plugins in EFI/CLOVER/kexts/Other
+of the ESP that belong to target Volume (Clover must be already
+installed).<br>
+<br>
+Backup:<br>
+This package at each run remove previous installed FakeSMC.kext and PlugIns (also from other projects):<br>
+FakeSMC.kext<br>
+ADT7470.kext<br>
+Andigilog.kext<br>
+ACPIMonitor.kext<br>
+ACPISensors.kext<br>
+AmdCPUMonitor.kext<br>
+CPUSensors.kext<br>
+DIMMSensor.kext<br>
+F718x.kext<br>
+GeforceSensor.kext<br>
+GPUSensors.kext<br>
+HWInfo.kext<br>
+ICHSBus.kext<br>
+IntelCPUMonitor.kext<br>
+ITEIT87x.kext<br>
+LPCSensors.kext<br>
+NVClockX.kext<br>
+PC8739x.kext<br>
+RadeonMonitor.kext<br>
+SMIMonitor.kext<br>
+VoodooBatterySMC.kext<br>
+W836x.kext<br>
+X3100.kext<br>
+<br>
+These kexts are searched in all subdirectories of /S/L/E (or EFI/CLOVER/kexts/Other if that is selected)<br>
+and moved to a backup folder in the root of the target Volume.<br>
+New ones are copied inside the new FakeSMC.kext/Contents/PlugIns/, for this you will see only the FakeSMC.kext!<br>
+<br>
+HWMonitorSMC.app installs in /Applications of the target Volume.</span></small><br>
+</body></html>
