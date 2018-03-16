@@ -10,12 +10,12 @@ Funziona sugli ultimi Sistemi partendo da macOS 10.10.";
 "Extensions_title" = "Estensioni del kernel";
 "Extensions_description" = "FakeSMC.kext & PlugIns per abilitare la lettura dei sensori.";
 
-"kextsToESP_title" = "Installa i kext nella ESP";
-"kextsToESP_description" = "Se questa opzione viene selezionata il pacchetto installerà i kext nella ESP in EFI/CLOVER/kexts/Other. Nota che per fare questo Clover deve essere già installato!
-Altrimenti, i kext verranno installati in /System/Library/Extensions del Volume scelto.
+"kextsToESP_title" = "Installa i kexts nella ESP";
+"kextsToESP_description" = "Se questa opzione viene selezionata il pacchetto installerà i kexts nella ESP in EFI/CLOVER/kexts/Other. Nota che per fare questo Clover deve essere già installato!
+Altrimenti se disabilitata, i kexts verranno installati in /System/Library/Extensions del Volume scelto.
 
 Backup:
-Questo pacchetto, ad ogni sessione, rimuove il vecchio FakeSMC.kext ed i suoi plugin, anche provenienti da altri progetti:
+Questo pacchetto, ad ogni sessione, rimuove il vecchio FakeSMC.kext ed i suoi plugins, provenienti pure da altri progetti:
 FakeSMC.kext
 ADT7470.kext
 Andigilog.kext
@@ -40,11 +40,11 @@ VoodooBatterySMC.kext
 W836x.kext
 X3100.kext
 
-Queste estensioni vengono cercate in tutte le sotto cartelle (all'interno di altri kext) in /System/Library/Extensions (oppure EFI/CLOVER/kexts/Other se l'opzione è stata selezionata) e spostate in una cartella di backup nella root del Volume selezionato.
-I kext che hai selezionato, se più di uno, verranno copiate in FakeSMC.kext/Contents/PlugIns/, per questo vedrai solo il FakeSMC.kext!";
+Queste estensioni vengono cercate in tutte le sotto cartelle (all'interno di altri kexts) in /System/Library/Extensions (oppure EFI/CLOVER/kexts/Other se l'opzione è stata selezionata) e spostate in una cartella di backup nella root del Volume selezionato.
+I kexts che hai selezionato, se più di uno, verranno copiati in FakeSMC.kext/Contents/PlugIns/, per questo vedrai solo quest'ultimo!";
 
 "FakeSMC_title" = "FakeSMC.kext";
-"FakeSMC_description" = "Versione di Slice's del driver originariamente inventato da Netkas.";
+"FakeSMC_description" = "Versione di Slice del driver originariamente inventato da Netkas.";
 
 "CPU_title" = "CPU";
 "CPU_description" = "I Plugins in questo gruppo servono per abilitare le letture dei sensori della CPU.";

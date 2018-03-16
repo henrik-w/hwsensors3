@@ -7,6 +7,7 @@
 
 
 
+
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta http-equiv="Content-Style-Type" content="text/css"><title></title>
   
@@ -17,16 +18,16 @@
     span.s1 {font: 10.0px 'Lucida Grande'}
     span.s2 {color: #000000}
     span.s3 {text-decoration: underline}
-  </style></head><body><small><span style="font-family: Times;">Ci sono due modi di installare i kext con questo pachetto:<br>
+  </style></head><body><small><span style="font-family: Times;">Ci sono due modi di installare i kexts con questo pachetto:<br>
 <br>
-1) Installare FakeSMC.kext e i suoi plugin in
+1) Installare FakeSMC.kext e i suoi plugins in
 /System/Library/Extensions sul Volume selezionato (SIP deve essere
 disabilitato o permettere kexts non firmati).<br>
 <br>
-2) Installare FakeSMC.kext </span></small><small><span style="font-family: Times;">e i suoi plugin in</span></small><small><span style="font-family: Times;"> EFI/CLOVER/kexts/Other sulla ESP relativa al Volume selezionato (Clover deve essere già installato).<br>
+2) Installare FakeSMC.kext </span></small><small><span style="font-family: Times;">e i suoi plugins in</span></small><small><span style="font-family: Times;"> EFI/CLOVER/kexts/Other sulla ESP relativa al Volume selezionato (Clover deve essere già installato).<br>
 <br>
 Backup:<br>
-Questo pacchetto, ad ogni sessione, rimuove il vecchio FakeSMC.kext ed i suoi plugin, anche provenienti da altri progetti:<br>
+Questo pacchetto, ad ogni sessione, rimuove il vecchio FakeSMC.kext ed i suoi plugins, provenienti pure da altri progetti:<br>
 FakeSMC.kext<br>
 ADT7470.kext<br>
 Andigilog.kext<br>
@@ -51,8 +52,8 @@ VoodooBatterySMC.kext<br>
 W836x.kext<br>
 X3100.kext<br>
 <br>
-Queste estensioni vengono cercate in tutte le sotto cartelle (all'interno di altri kext) di /System/Library/Extensions (oppure </span></small><small><span style="font-family: Times;">EFI/CLOVER/kexts/Other se l'opzione è stata selezionata</span></small><small><span style="font-family: Times;">) e spostate in una cartella di backup nella root del Volume selezionato.<br>I kext che hai selezionato, se più di uno, verranno copiati in </span></small><small><span style="font-family: Times;">FakeSMC.kext/Contents/PlugIns/, per questo vedrai solo quest'ultimo!</span></small><small><span style="font-family: Times;"><br>
-L'installer penserà a riparare i permessi ed a ricostruire la cache ove necessario.<br>
+Queste estensioni vengono cercate in tutte le sotto cartelle (all'interno di altri kexts) di /System/Library/Extensions (oppure </span></small><small><span style="font-family: Times;">EFI/CLOVER/kexts/Other se l'opzione è stata selezionata</span></small><small><span style="font-family: Times;">) e spostate in una cartella di backup nella root del Volume selezionato.<br>I kexts che hai selezionato, se più di uno, verranno copiati in </span></small><small><span style="font-family: Times;">FakeSMC.kext/Contents/PlugIns/, per questo vedrai solo quest'ultimo!</span></small><small><span style="font-family: Times;"><br>
+L'installer penserà a riparare i permessi ed a ricostruire la cache dove necessario.<br>
 <br>
 HWMonitorSMC.app viene installata in /Applications del Volume selezionato.</span></small><br>
 </body></html>
