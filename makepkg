@@ -68,14 +68,13 @@ cd "${SRCROOT}/package/utils/partutil"
 rm -rf "${SRCROOT}/compilations/utils"
 mkdir -p "${SRCROOT}/compilations/utils"
 mkdir -p "${SRCROOT}/compilations/obj"
-mkdir -p "${SRCROOT}/compilations/dst"
-# building kernel extensions
+
+# building partutil
 xcodebuild  -quiet -project partutil.xcodeproj \
             -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
             -sdk macosx -configuration 'Release' \
             CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/utils" \
-            SYMROOT="${SRCROOT}/compilations/obj" \
-            DSTROOT="${SRCROOT}/compilations/dst"
+            SYMROOT="${SRCROOT}/compilations/obj"
 
 cp -RL "${SRCROOT}/compilations/utils/partutil" "${SCRIPTS_PATH}/Post"
 }
