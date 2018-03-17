@@ -8,7 +8,7 @@ normal=$(tput sgr0)
 
 SRCROOT="$(dirname $0)"
 cd "${SRCROOT}"
-PREFERRED_SDK="macosx10.13" # Default sdk to build kexts. If exist
+PREFERRED_SDK="macosx10.11" # Default sdk to build kexts. If exist
 PREFERRED_CONF='Release 10.6' # Default configuration to build kexts.
 
 VERSION=$(svn info | grep '^Revision:' | tr -cd [:digit:])
