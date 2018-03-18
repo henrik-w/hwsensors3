@@ -22,8 +22,6 @@ if [[ -d "${TARGET}"tmp/HWSensor ]]; then
   TEMPDIR="${TARGET}tmp/HWSensor"
 elif [[ -d "${TARGET}"private/tmp/HWSensor ]]; then
   TEMPDIR="${TARGET}private/tmp/HWSensor"
-else
-  echo "Fatal Error: tmp directory not found." && exit 1
 fi
 
 # FakeSMC.kext must be always the first item of the below array!
@@ -71,7 +69,7 @@ if [[ -d "${TEMPDIR}"/Backup ]]; then
 fi
 }
 
-if [[ -d "${TEMPDIR}"/FakeSMC.kext ]]; then
+if [[ -n "${TEMPDIR}" ]] && [[ -d "${TEMPDIR}"/FakeSMC.kext ]]; then
   if [[ -f "${TEMPDIR}"/ESP ]]; then
     rm -f "${TEMPDIR}"/ESP
     # try to install to the ESP
