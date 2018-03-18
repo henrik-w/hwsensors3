@@ -132,6 +132,7 @@ if [[ -n "${TEMPDIR}" ]] && [[ -d "${TEMPDIR}"/FakeSMC.kext ]]; then
       mkdir -p "${ESPMountPoint}/EFI/CLOVER/kexts/Other"
       backupKextsAtPath "${ESPMountPoint}/EFI/CLOVER/kexts/Other"
       cp -R "${TEMPDIR}"/FakeSMC.kext "${ESPMountPoint}/EFI/CLOVER/kexts/Other/"
+      chmod -R 777 "${ESPMountPoint}/EFI/CLOVER/kexts/Other/FakeSMC.kext"
       rm -rf "${TEMPDIR}"
     fi
   else

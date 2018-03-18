@@ -148,7 +148,7 @@ local installLocation="/"
 local ispkg="false"
 
 local pkgInfo="<?xml version=\"1.0\"?>\n<pkg-info format-version=\"2\" "
-local cmd="pkgbuild --quiet"
+local cmd="pkgbuild --quiet --ownership preserve"
 
 # Check the arguments.
 for option in "${@}";do

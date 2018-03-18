@@ -6,4 +6,12 @@ else
     TARGET="${3}/"
 fi
 
+`killall -d "HWMonitorSMC" &> /dev/null`
+let "RUNNING = ! $?"
+
+if [[ $RUNNING -eq 1 ]]; then
+  echo "killing HWMonitorSMC.app"
+  killall HWMonitorSMC
+fi
+
 rm -rf "${TARGET}"Applications/HWMonitorSMC.app

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ "$3" == "/" ]; then
+    open /Applications/HWMonitorSMC.app
+fi
+
