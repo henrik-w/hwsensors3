@@ -1,6 +1,9 @@
 #!/bin/bash
 
 if [ "$3" == "/" ]; then
-    open /Applications/HWMonitorSMC.app
+    TARGET="${3}"
+else
+    TARGET="${3}/"
 fi
 
+open "${TARGET}"Applications/HWMonitorSMC.app
