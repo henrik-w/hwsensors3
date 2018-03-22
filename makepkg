@@ -77,6 +77,19 @@ xcodebuild  -quiet -project partutil.xcodeproj \
             SYMROOT="${SRCROOT}/compilations/obj"
 
 cp -RL "${SRCROOT}/compilations/utils/partutil" "${SCRIPTS_PATH}/Post"
+
+echo "[seticon]"
+cd "${SRCROOT}/package/utils/seticon"
+rm -rf "${SRCROOT}/compilations/utils"
+mkdir -p "${SRCROOT}/compilations/utils"
+mkdir -p "${SRCROOT}/compilations/obj"
+
+# building seticon
+xcodebuild  -quiet -project seticon.xcodeproj \
+            -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
+            -sdk macosx -configuration 'Release' \
+            CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/utils" \
+            SYMROOT="${SRCROOT}/compilations/obj"
 }
 
 modResourcesAtPath() {
@@ -534,7 +547,13 @@ mkdir "${SRCROOT}/compilations/package"
 cp -R  "${SRCROOT}/package/Resources" "${PACKAGE_TEMP_DIR}"
 modResourcesAtPath "${PACKAGE_TEMP_DIR}/Resources"
 pkgutil --flatten "${PACKAGE_TEMP_DIR}" "${SRCROOT}/compilations/package/${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg" || exit 1
+
 # icon
-"${SRCROOT}/package/seticon.py" "${ICON_PATH}" "${SRCROOT}/compilations/package/${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg"
+if [[ -x "${SRCROOT}/compilations/utils/seticon" ]]; then
+  "${SRCROOT}/compilations/utils/seticon" "${ICON_PATH}" \
+  "${SRCROOT}/compilations/package/${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg"
+fi
+
+echo "${bold}Package name: ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg${normal}"
 open "${SRCROOT}/compilations/package"
 exit 0
