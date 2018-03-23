@@ -63,33 +63,32 @@ VoodooBatterySMC
 )
 
 makeUtils() {
+local config='Release'
 echo "[partutil]"
 cd "${SRCROOT}/package/utils/partutil"
 rm -rf "${SRCROOT}/compilations/utils"
 mkdir -p "${SRCROOT}/compilations/utils"
-mkdir -p "${SRCROOT}/compilations/obj"
 
 # building partutil
 xcodebuild  -quiet -project partutil.xcodeproj \
             -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
-            -sdk macosx -configuration 'Release' \
-            CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/utils" \
-            SYMROOT="${SRCROOT}/compilations/obj"
+            -sdk macosx -configuration "$config" \
+            SYMROOT="${SRCROOT}/compilations/partutil_SYMROOT"
 
-cp -RL "${SRCROOT}/compilations/utils/partutil" "${SCRIPTS_PATH}/Post"
+cp -R "${SRCROOT}/compilations/partutil_SYMROOT/${config}/partutil" "${SRCROOT}/compilations/utils/"
+cp -R "${SRCROOT}/compilations/partutil_SYMROOT/${config}/partutil" "${SCRIPTS_PATH}/Post"
 
 echo "[seticon]"
 cd "${SRCROOT}/package/utils/seticon"
 rm -rf "${SRCROOT}/compilations/utils"
 mkdir -p "${SRCROOT}/compilations/utils"
-mkdir -p "${SRCROOT}/compilations/obj"
 
 # building seticon
 xcodebuild  -quiet -project seticon.xcodeproj \
             -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
-            -sdk macosx -configuration 'Release' \
-            CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/utils" \
-            SYMROOT="${SRCROOT}/compilations/obj"
+            -sdk macosx -configuration "$config" \
+            SYMROOT="${SRCROOT}/compilations/seticon_SYMROOT"
+cp -R "${SRCROOT}/compilations/seticon_SYMROOT/${config}/seticon" "${SRCROOT}/compilations/utils/"
 }
 
 modResourcesAtPath() {

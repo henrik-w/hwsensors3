@@ -10,6 +10,7 @@ SRCROOT="$(dirname $0)"
 cd "${SRCROOT}"
 PREFERRED_SDK="macosx10.11" # Default sdk to build kexts. If exist
 PREFERRED_CONF='Release 10.6' # Default configuration to build kexts.
+PREFERRED_CONF_APPS='Release' # Default configuration to build kexts.
 
 VERSION=$(svn info | grep '^Revision:' | tr -cd [:digit:])
 
@@ -26,10 +27,16 @@ echo "${bold}** Building HWSensor's extensions r${VERSION} **${normal}"
 
 checkDefaultSDK
 
+rm -rf compilations/Extensions
+rm -rf compilations/HWMonitorSMC
+rm -rf compilations/HWMonitorSMC2
+
 mkdir -p compilations/Extensions
 mkdir -p compilations/HWMonitorSMC
 mkdir -p compilations/HWMonitorSMC2
-mkdir -p compilations/obj
+mkdir -p compilations/Extensions_SYMROOT
+mkdir -p compilations/HWMonitorSMC_SYMROOT
+mkdir -p compilations/HWMonitorSMC2_SYMROOT
 
 cd trunk
 
@@ -38,28 +45,10 @@ xcodebuild -quiet -project HWSensors.xcodeproj \
                 -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                 -sdk $PREFERRED_SDK \
                 -configuration "${PREFERRED_CONF}" \
-                CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/Extensions" \
-                SYMROOT="${SRCROOT}/compilations/obj"  || exit 1
+                SYMROOT="${SRCROOT}/compilations/Extensions_SYMROOT" || exit 1
 
-# HWMonitorSMC.app v2 can be compiled only with Xcode 9 + and swift
-buildNewHWMonitorSMC() {
-local xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
-case "$xver" in
-    9*) ;;
-    10*) ;;
-    *) echo "HWMonitorSMC.app v2.x requires Xcode 9 +" && return;;
-esac
-
-echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
-cd  "${SRCROOT}/trunk/hwmonitor2"
-xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
-                -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
-                -sdk macosx \
-                -configuration Release \
-                CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/HWMonitorSMC2" \
-                SYMROOT="${SRCROOT}/compilations/HWMonitorSMC2/obj" || exit 1
-}
-
+cp -R "${SRCROOT}/compilations/Extensions_SYMROOT/${PREFERRED_CONF}"/*.kext \
+                                          "${SRCROOT}/compilations/Extensions/"
 
 # building HWMonitorSMC.app v1.x
 echo "${bold}** Building HWMonitorSMC.app v1 **${normal}"
@@ -67,8 +56,31 @@ cd  "${SRCROOT}/trunk/hwmonitor"
 xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
                 -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                 -sdk macosx \
-                -configuration Release \
-                CONFIGURATION_BUILD_DIR="${SRCROOT}/compilations/HWMonitorSMC" \
-                SYMROOT="${SRCROOT}/compilations/HWMonitorSMC/obj" || exit 1
+                -configuration "${PREFERRED_CONF_APPS}" \
+                SYMROOT="${SRCROOT}/compilations/HWMonitorSMC_SYMROOT" || exit 1
 
-buildNewHWMonitorSMC
+cp -R "${SRCROOT}/compilations/HWMonitorSMC_SYMROOT/${PREFERRED_CONF_APPS}"/HWMonitorSMC.app \
+                                              "${SRCROOT}/compilations/HWMonitorSMC/"
+
+# HWMonitorSMC.app v2 can be compiled only with Xcode 9 + and swift 4+
+buildv2=0
+xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
+case "$xver" in
+    9*)  buildv2=1;;
+    10*) buildv2=1;;
+    *)   buildv2=0;;
+esac
+
+if [ "$buildv2" -eq "1" ]; then
+  echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
+  cd  "${SRCROOT}/trunk/hwmonitor2"
+  xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
+                    -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
+                    -sdk macosx \
+                    -configuration "${PREFERRED_CONF_APPS}" \
+                    SYMROOT="${SRCROOT}/compilations/HWMonitorSMC2_SYMROOT" || exit 1
+  cp -R "${SRCROOT}/compilations/HWMonitorSMC2_SYMROOT/${PREFERRED_CONF_APPS}"/HWMonitorSMC.app \
+                                                          "${SRCROOT}/compilations/HWMonitorSMC2/"
+else
+  echo "HWMonitorSMC.app v2.x requires Xcode 9 +"
+fi
