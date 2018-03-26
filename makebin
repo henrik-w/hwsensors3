@@ -79,7 +79,7 @@ if [ "$buildv2" -eq "1" ]; then
                     -sdk macosx \
                     -configuration "${PREFERRED_CONF_APPS}" \
                     SYMROOT="${SRCROOT}/compilations/HWMonitorSMC2_SYMROOT" || exit 1
-  cp -R "${SRCROOT}/compilations/HWMonitorSMC2_SYMROOT/${PREFERRED_CONF_APPS}"/HWMonitorSMC.app \
+  cp -R "${SRCROOT}/compilations/HWMonitorSMC2_SYMROOT/${PREFERRED_CONF_APPS}"/HWMonitorSMC2.app \
                                                           "${SRCROOT}/compilations/HWMonitorSMC2/"
 else
   echo "HWMonitorSMC.app v2.x requires Xcode 9 +"

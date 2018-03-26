@@ -363,7 +363,7 @@ appscount=0
 if [[ -d "${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app" ]]; then
 ((appscount+=1))
 fi
-if [[ -d "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC.app" ]]; then
+if [[ -d "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC2.app" ]]; then
 ((appscount+=1))
 fi
 
@@ -387,10 +387,10 @@ if [[ -d "${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app" ]]; then
   fi
 fi
 
-if [[ -d "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC.app" ]]; then
+if [[ -d "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC2.app" ]]; then
   rm -rf "${PACKAGE_TEMP_DIR}/HWMonitorSMC2"
   mkdir -p "${PACKAGE_TEMP_DIR}/HWMonitorSMC2/Applications"
-  cp -R "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC.app" "${PACKAGE_TEMP_DIR}/HWMonitorSMC2/Applications/"
+  cp -R "${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC2.app" "${PACKAGE_TEMP_DIR}/HWMonitorSMC2/Applications/"
   echo -e "${ind}${ind}${ind}<line choice=\"HWMonitorSMC2\"/>" >> "${DISTR1_PATH}"
   if [[ "$appscount" -eq "2" ]]; then
     addChoice --title=HWMonitorSMC2 \
