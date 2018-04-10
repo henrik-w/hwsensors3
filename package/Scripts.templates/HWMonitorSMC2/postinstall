@@ -6,4 +6,4 @@ else
     TARGET="${3}/"
 fi
 
-open "${TARGET}"Applications/HWMonitorSMC.app
+open "${TARGET}"Applications/HWMonitorSMC2.app
