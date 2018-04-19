@@ -72,6 +72,8 @@ case "$xver" in
 esac
 
 if [ "$buildv2" -eq "1" ]; then
+  # SystemKit.framenwork is a dependency now added in binary form at ../hwmonitor2/Framenworks
+  # do not forget to rebuild it as soon as you need it in Swift 5.
   echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
   cd  "${SRCROOT}/trunk/hwmonitor2"
   xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
