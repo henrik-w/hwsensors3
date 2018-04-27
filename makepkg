@@ -23,6 +23,7 @@ DISTR2_PATH="${PACKAGE_TEMP_DIR}/Distr2"
 DISTR3_PATH="${PACKAGE_TEMP_DIR}/Distr3"
 SCRIPTS_PATH="${SRCROOT}/compilations/Scripts.templates"
 ICON_PATH="${SRCROOT}/package/icon.png"
+DMG_ICON_PATH="${SRCROOT}/package/dmg_icon.icns"
 
 KEXTS=()
 GPU_KEXTS=()
@@ -192,6 +193,92 @@ for option in "${@}";do
         *)  break ;;
     esac
 done
+
+diskImage(){
+echo "${bold}** Building ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.dmg **${normal}"
+local anyApp=0
+local device=""
+local temp="${SRCROOT}/compilations/package/dmg"
+local vol="${PROJ_NAME}-${PROJ_VER}_r${VERSION}"
+local dmg="${SRCROOT}/compilations/package/${vol}.dmg"
+local app1="${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app"
+local app2="${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC2.app"
+
+if [[ -d "${HOME}/${vol}/Extensions" ]]; then
+  echo "detaching an old ${vol}.."
+  device=$(LC_ALL=C diskutil info "${HOME}/${vol}" 2>/dev/null | \
+                               sed -n 's/.*Part [oO]f Whole: *//p')
+  hdiutil detach -force $device -quiet
+fi
+
+mkdir "${temp}"
+echo "copying kexts.."
+cp -R "${KEXTS_PATH}" "${temp}"/
+
+if [[ -x "${app1}/Contents/MacOS/HWMonitorSMC" ]]; then
+  echo "adding HWMonitorSMC.app v1.."
+  cp -R "${app1}" "${temp}"/
+  anyApp=1
+fi
+if [[ -x "${app2}/Contents/MacOS/HWMonitorSMC2" ]]; then
+  echo "adding HWMonitorSMC.app v2.."
+  cp -R "${app2}" "${temp}"/
+  anyApp=1
+fi
+
+if [[ "$anyApp" -eq "1" ]]; then
+  cd "${temp}"
+  ln -s /Applications Applications
+fi
+
+# create the dmg file
+cd "${SRCROOT}/compilations/package"
+echo "creating dmg file.."
+ACTUAL_SIZE=$(du -sm "${temp}" | awk '{print $1}')
+
+DISK_IMAGE_SIZE=$(expr "${ACTUAL_SIZE}" + 20)
+
+# hdiutil create -fs HFS+ -srcfolder "${temp}" -format UDRW -volname "${vol}" -size "${DISK_IMAGE_SIZE}"m "${vol}.dmg"
+hdiutil create -srcfolder "${temp}" -volname "${vol}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size "${DISK_IMAGE_SIZE}"m "${vol}.dmg"
+hdiutil attach -readwrite -noverify -noautoopen "${dmg}" -mountroot "${HOME}"
+device=$(LC_ALL=C diskutil info "${HOME}/${vol}" 2>/dev/null | \
+                             sed -n 's/.*Part [oO]f Whole: *//p')
+
+echo "setting images.."
+# set images
+cp "${DMG_ICON_PATH}" "${HOME}/${vol}"/.VolumeIcon.icns
+SetFile -c icnC "${HOME}/${vol}"/.VolumeIcon.icns
+SetFile -a C "${HOME}/${vol}"
+
+osascript <<EOF
+tell application "Finder"
+  tell disk "${vol}"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {400, 199, 1090, 400}
+    set theViewOptions to the icon view options of container window
+    set arrangement of theViewOptions to not arranged
+    set icon size of theViewOptions to 128
+    update without registering applications
+    close
+  end tell
+end tell
+EOF
+
+chmod -Rf go-w "${HOME}/${vol}" &> /dev/null
+bless --folder "${HOME}/${vol}" --openfolder "${HOME}/${vol}"
+
+# clean
+echo "detaching.."
+hdiutil detach -force $device -quiet
+rm -rf "${temp}"
+if [[ -x "${SRCROOT}/compilations/utils/seticon" ]]; then
+  "${SRCROOT}/compilations/utils/seticon" "${DMG_ICON_PATH}" "${dmg}"
+fi
+echo "${bold}DMG name: ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.dmg${normal}"
+}
 
 if [[ -n "${pkgRoot}" ]] && [[ ! -d "${pkgRoot}" ]]; then
     echo "Error: addChoice missing,invalid or inexistent parameter \"--pkg-root=${pkgRoot}\""
@@ -554,5 +641,8 @@ if [[ -x "${SRCROOT}/compilations/utils/seticon" ]]; then
 fi
 
 echo "${bold}Package name: ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg${normal}"
+
+diskImage
+
 open "${SRCROOT}/compilations/package"
 exit 0
