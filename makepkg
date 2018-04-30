@@ -234,19 +234,15 @@ fi
 # create the dmg file
 cd "${SRCROOT}/compilations/package"
 echo "creating dmg file.."
-ACTUAL_SIZE=$(du -sm "${temp}" | awk '{print $1}')
 
-DISK_IMAGE_SIZE=$(expr "${ACTUAL_SIZE}" + 20)
-
-# hdiutil create -fs HFS+ -srcfolder "${temp}" -format UDRW -volname "${vol}" -size "${DISK_IMAGE_SIZE}"m "${vol}.dmg"
-hdiutil create -srcfolder "${temp}" -volname "${vol}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size "${DISK_IMAGE_SIZE}"m "${vol}.dmg"
+hdiutil create -srcfolder "${temp}" -volname "${vol}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW "${vol}.dmg"
 hdiutil attach -readwrite -noverify -noautoopen "${dmg}" -mountroot "${HOME}"
 device=$(LC_ALL=C diskutil info "${HOME}/${vol}" 2>/dev/null | \
                              sed -n 's/.*Part [oO]f Whole: *//p')
 
 echo "setting images.."
 # set images
-cp "${DMG_ICON_PATH}" "${HOME}/${vol}"/.VolumeIcon.icns
+cp -R "${DMG_ICON_PATH}" "${HOME}/${vol}"/.VolumeIcon.icns
 SetFile -c icnC "${HOME}/${vol}"/.VolumeIcon.icns
 SetFile -a C "${HOME}/${vol}"
 
