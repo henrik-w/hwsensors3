@@ -203,6 +203,7 @@ local vol="${PROJ_NAME}-${PROJ_VER}_r${VERSION}"
 local dmg="${SRCROOT}/compilations/package/${vol}.dmg"
 local app1="${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app"
 local app2="${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC2.app"
+local readme="${SRCROOT}/package/README.pdf"
 
 if [[ -d "${HOME}/${vol}/Extensions" ]]; then
   echo "detaching an old ${vol}.."
@@ -225,6 +226,8 @@ if [[ -x "${app2}/Contents/MacOS/HWMonitorSMC2" ]]; then
   cp -R "${app2}" "${temp}"/
   anyApp=1
 fi
+
+cp -R "${readme}" "${temp}"/Extensions/README.pdf
 
 if [[ "$anyApp" -eq "1" ]]; then
   cd "${temp}"
