@@ -1,0 +1,87 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf400
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\froman\fcharset0 Times-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue255;\red255\green255\blue255;
+\red40\green46\blue50;\red47\green81\blue130;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c1569\c19608\c100000;\cssrgb\c100000\c100000\c100000;
+\cssrgb\c20784\c23529\c25490;\cssrgb\c23922\c39608\c58039;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww28080\viewh12960\viewkind0
+\deftab720
+\pard\pardeftab720\sl288\slmult1\partightenfactor0
+
+\f0\b\fs24 \cf2 \expnd0\expndtw0\kerning0
+WARNING: 
+\b0 \
+
+\b Don't install any kext if you don't know what it does!
+\b0 \uc0\u8232 
+\b Don't install any of these extensions on Apple hardware
+\b0  unless you know how to restore your System if something goes wrong.\uc0\u8232 
+\b Don't claim if you have done that!! \
+
+\b0 \
+Both the apps should works on Apple Hardware as is, without the need to install kexts included in this image. \
+There's any risk installing these kernel extensions? \
+The only risk is a boot failure. Since the project is constantly updated, new bugs can comes out, so before installing them permanently is adviced to boot \
+with bootloadres (like Clover) installed in a USB stick, able to inject kexts from outside the System's folders and then \cf2 test them \cf2 in safety.. \
+so that your will know if all works as expected without risks. \
+Anyway We are not responsible for any kind of damage, implicit or not and by installing/using the softwares included in this image you are perfectly aware of that. \
+\
+
+\b Info 
+\b0 \
+\cf3 \cb4 FakeSMC.kext: \cf2 \cb1 \
+Slice's version of the mandatory driver made by Netkas. \
+\
+
+\b CPU monitoring 
+\b0 \
+\cf3 \cb4 IntelCPUMonitor.kext: \cf2 \cb1 \
+\cb4 Enable the reading of the CPU sensors. Use that only with Intel CPUs. \cf3 AmdCPUMonitor.kext: \cf2 \cb1 \
+\cb4 Enable the reading of the CPU sensors. Use that only with AMD CPUs. \
+\ul Don't install both extensions! \cb1 \ulnone \
+\cb4 \
+
+\b \cf2 \cb1 GPU monitoring 
+\b0 \cf2 \cb4 \
+\cf3 GeforceSensor.kext: \cf2 \cb1 \
+\cb4 Enable the reading of the GPU sensors for NVidia 4xx, 5xx, ...10xx Series. Don't use with NVClockX.kext! Only one of it! \cb1 \
+\cf3 \cb4 NVClockX.kext: \cf2 \cb1 \
+\cb4 Enable the reading of the GPU sensors for NVidia 7xxx-9xxx Series. Don't use with GeforceSensor.kext! Only one of it! \cb1 \
+\cf3 \cb4 RadeonMonitor.kext: \cf2 \cb1 \
+\cb4 Enable the reading of the GPU sensors for ATI/AMD Radeon HD4xxx - 8xxx, R5-R9 2xx 3xx 4xx 5xx cards. \cb1 \
+\cf3 \cb4 X3100.kext: \cf2 \cb1 \
+\cb4 Enable the reading of the GPU sensors for Intel X3100 at 965M chipset. \cb1 \
+\cb4 \
+\cb1 \ul Install only extensions that match with your GPU! \ulnone \
+\
+
+\b Motherboard monitoring
+\b0 \
+\cf3 F718x.kext: \cf2 \
+For Fintek LPC chips. \
+\cf3 ITEIT87x.kext: \cf2 \
+For ITE LPC chip, usually for Gigabyte motherboards. \
+\cf3 PC8739x.kext: \cf2 \
+For SMC LPC chip. \
+\cf3 W836x.kext: \cf2 \
+For Winbond or Nuvoton NCT LPC chip, usual for ASUS motherboards. \
+\
+\ul Don't install more than one kext, use only the extension that respect what's on in your motherboard! \ulnone \
+\
+\cf3 ACPIMonitor.kext: \cf2 \
+Installing this kext isn't enough to read FANs or Ambient sensors:\uc0\u8232 must be used with custom DSDT edits. Look at {\field{\*\fldinst{HYPERLINK "https://www.insanelymac.com/forum/topic/309328-howto-acpi-access-for-monitoring/"}}{\fldrslt \cf0 \kerning1\expnd0\expndtw0 https://www.insanelymac.com/forum/topic/309328-howto-acpi-access-for-monitoring/}}. \
+\
+
+\b Battery  monitoring (laptops)
+\b0 \
+\cf3 VoodooBatterySMC.kext: \cf2 \
+Enable the reading of laptop's battery status in the top-bar. HWMonitorSMC.app v1 or v2 can read also its voltage/amperage. 
+\f1 \
+
+\f0\fs37\fsmilli18667 \cf5 \
+
+\fs28 \cf5 \cb4 Source code:\'a0{\field{\*\fldinst{HYPERLINK "https://sourceforge.net/p/hwsensors/hwsensors3/code3/HEAD/tree/"}}{\fldrslt \cf6 \ul \ulc6 https://sourceforge.net/p/hwsensors/hwsensors3/code3/HEAD/tree/}}\
+Bugs report: \'a0{\field{\*\fldinst{HYPERLINK "https://sourceforge.net/p/hwsensors/hwsensors3/tickets/"}}{\fldrslt \cf6 \ul \ulc6 https://sourceforge.net/p/hwsensors/hwsensors3/tickets/}}\
+Topic for discussion:\'a0{\field{\*\fldinst{HYPERLINK "https://www.insanelymac.com/forum/topic/299861-hwsensors3/"}}{\fldrslt \cf6 \ul \ulc6 https://www.insanelymac.com/forum/topic/299861-hwsensors3/}}
+\f1\fs24 \cf2 \cb1 \
+}
