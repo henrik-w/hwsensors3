@@ -20,4 +20,6 @@ clean:
 	xcodebuild -quiet -project ${SRCROOT}/package/utils/seticon/seticon.xcodeproj -alltargets clean
 	rm -rf compilations package/utils/partutil/build package/utils/seticon/build trunk/hwmonitor/build trunk/hwmonitor2/build trunk/build
 
-.PHONY: clean pkg makebin 
+fresh: clean pkg
+
+.PHONY: clean pkg makebin install
