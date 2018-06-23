@@ -8,6 +8,9 @@ all: makebin
 makebin:
 	@${SRCROOT}/makebin
 
+kexts:
+	@${SRCROOT}/makebin 1
+
 pkg:	
 	@${SRCROOT}/makebin
 	@${SRCROOT}/makepkg
@@ -22,4 +25,4 @@ clean:
 
 fresh: clean pkg
 
-.PHONY: clean pkg makebin install
+.PHONY: clean pkg makebin kexts

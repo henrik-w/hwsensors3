@@ -23,10 +23,6 @@ else
 fi
 }
 
-echo "${bold}** Building HWSensor's extensions r${VERSION} **${normal}"
-
-checkDefaultSDK
-
 rm -rf compilations/Extensions
 rm -rf compilations/HWMonitorSMC
 rm -rf compilations/HWMonitorSMC2
@@ -40,15 +36,38 @@ mkdir -p compilations/HWMonitorSMC2_SYMROOT
 
 cd trunk
 
-# building kernel extensions
-xcodebuild -quiet -project HWSensors.xcodeproj \
-                -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
-                -sdk $PREFERRED_SDK \
-                -configuration "${PREFERRED_CONF}" \
-                SYMROOT="${SRCROOT}/compilations/Extensions_SYMROOT" || exit 1
+if [[ -d ../kexts_prebuilt ]]; then
+  # building kernel extensions
+  echo "${bold}** Using HWSensor's pre built extensions **${normal}"
+  cp -R ../kexts_prebuilt/*.kext "${SRCROOT}/compilations/Extensions/"
 
-cp -R "${SRCROOT}/compilations/Extensions_SYMROOT/${PREFERRED_CONF}"/*.kext \
+else
+  # building kernel extensions
+  echo "${bold}** Building HWSensor's extensions r${VERSION} **${normal}"
+  checkDefaultSDK
+  xcodebuild  -quiet \
+              -project HWSensors.xcodeproj \
+              -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
+              -sdk $PREFERRED_SDK \
+              -configuration "${PREFERRED_CONF}" \
+              SYMROOT="${SRCROOT}/compilations/Extensions_SYMROOT" || exit 1
+
+  cp -R "${SRCROOT}/compilations/Extensions_SYMROOT/${PREFERRED_CONF}"/*.kext \
                                           "${SRCROOT}/compilations/Extensions/"
+fi
+
+echo
+for i in "${SRCROOT}/compilations/Extensions"/* ; do
+  if [[ -d "$i" ]]; then
+    kext_ver=$(defaults read "${i}"/Contents/Info CFBundleVersion)
+    echo $(basename "$i") "(${kext_ver})"
+  fi
+done
+echo
+if [[ -n $1 ]]; then
+  open "${SRCROOT}/compilations/Extensions"
+  exit 0
+fi
 
 # building HWMonitorSMC.app v1.x
 echo "${bold}** Building HWMonitorSMC.app v1 **${normal}"
