@@ -8,6 +8,11 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 ind="    " # indentation
 
+quiet="-quiet"
+arch=""
+force64BitOnly=1
+buildPackage=1
+
 IDENTIFIER="org.slice.hwsensors"
 PROJ_NAME="HWSensors"
 PROJ_VER="3"
@@ -33,7 +38,7 @@ rm -rf "${SCRIPTS_PATH}"
 rm -rf "${PACKAGE_TEMP_DIR}"
 mkdir "${PACKAGE_TEMP_DIR}"
 mkdir -p "${KEXTS_PATH}"
-
+mkdir -p "${SCRIPTS_PATH}"
 
 # cpuExt: cpu extensions
 cpuExt=(
@@ -63,29 +68,37 @@ ACPIMonitor
 VoodooBatterySMC
 )
 
+xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
+case "$xver" in
+    4* | 5* | 6* | 7* )
+        quiet=""
+        buildPackage=0
+    ;;
+esac
+
+if [[ $force64BitOnly -eq 1 ]]; then
+  arch='ARCHS=x86_64 VALID_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES'
+fi
+
 makeUtils() {
 local config='Release'
 echo "[partutil]"
 cd "${SRCROOT}/package/utils/partutil"
 rm -rf "${SRCROOT}/compilations/utils"
 mkdir -p "${SRCROOT}/compilations/utils"
-
+mkdir -p "${SCRIPTS_PATH}"
 # building partutil
-xcodebuild  -quiet -project partutil.xcodeproj \
+xcodebuild  $arch $quiet -project partutil.xcodeproj \
             -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
             -sdk macosx -configuration "$config" \
             SYMROOT="${SRCROOT}/compilations/partutil_SYMROOT"
-
-cp -R "${SRCROOT}/compilations/partutil_SYMROOT/${config}/partutil" "${SRCROOT}/compilations/utils/"
-cp -R "${SRCROOT}/compilations/partutil_SYMROOT/${config}/partutil" "${SCRIPTS_PATH}/Post"
+cp -R "${SRCROOT}/compilations/partutil_SYMROOT/${config}/partutil" "${SRCROOT}/compilations/utils/partutil"
 
 echo "[seticon]"
 cd "${SRCROOT}/package/utils/seticon"
-rm -rf "${SRCROOT}/compilations/utils"
-mkdir -p "${SRCROOT}/compilations/utils"
 
 # building seticon
-xcodebuild  -quiet -project seticon.xcodeproj \
+xcodebuild  $arch $quiet -project seticon.xcodeproj \
             -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
             -sdk macosx -configuration "$config" \
             SYMROOT="${SRCROOT}/compilations/seticon_SYMROOT"
@@ -148,51 +161,6 @@ else
     exit 1
 fi
 }
-
-addChoice() {
-local option
-local title=""
-local pkgRoot=""
-local description=""
-local choiceOptions=""
-local choiceSelected=""
-local noPayload=""
-local installLocation="/"
-local ispkg="false"
-
-local pkgInfo="<?xml version=\"1.0\"?>\n<pkg-info format-version=\"2\" "
-local cmd="pkgbuild --quiet --ownership preserve"
-
-# Check the arguments.
-for option in "${@}";do
-    case "$option" in
-        --title=*)
-            shift; title="${option#*=}" ;;
-        --is-pkg=*)
-            shift; ispkg="${option#*=}" ;;
-        --no-payload)
-            shift; noPayload="--nopayload" ;;
-        --pkg-root=*)
-            shift; pkgRoot="${option#*=}" ;;
-        --start-selected=*)
-            shift; choiceOptions="$choiceOptions start_selected=\"${option#*=}\"" ;;
-        --start-enabled=*)
-            shift; choiceOptions="$choiceOptions start_enabled=\"${option#*=}\"" ;;
-        --start-visible=*)
-            shift; choiceOptions="$choiceOptions start_visible=\"${option#*=}\"" ;;
-        --enabled=*)
-            shift; choiceOptions="$choiceOptions enabled=\"${option#*=}\"" ;;
-        --selected=*)
-            shift; choiceSelected="selected=\"${option#*=}\"" ;;
-        --visible=*)
-            shift; choiceOptions="$choiceOptions visible=\"${option#*=}\"" ;;
-        -*)
-            echo "Unrecognized addChoice option '$option'" >&2
-            exit 1
-            ;;
-        *)  break ;;
-    esac
-done
 
 diskImage(){
 echo "${bold}** Building ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.dmg **${normal}"
@@ -279,6 +247,53 @@ fi
 echo "${bold}DMG name: ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.dmg${normal}"
 }
 
+
+addChoice() {
+local option
+local title=""
+local pkgRoot=""
+local description=""
+local choiceOptions=""
+local choiceSelected=""
+local noPayload=""
+local installLocation="/"
+local ispkg="false"
+
+local pkgInfo="<?xml version=\"1.0\"?>\n<pkg-info format-version=\"2\" "
+local cmd="pkgbuild --quiet --ownership preserve"
+
+# Check the arguments.
+for option in "${@}";do
+    case "$option" in
+        --title=*)
+            shift; title="${option#*=}" ;;
+        --is-pkg=*)
+            shift; ispkg="${option#*=}" ;;
+        --no-payload)
+            shift; noPayload="--nopayload" ;;
+        --pkg-root=*)
+            shift; pkgRoot="${option#*=}" ;;
+        --start-selected=*)
+            shift; choiceOptions="$choiceOptions start_selected=\"${option#*=}\"" ;;
+        --start-enabled=*)
+            shift; choiceOptions="$choiceOptions start_enabled=\"${option#*=}\"" ;;
+        --start-visible=*)
+            shift; choiceOptions="$choiceOptions start_visible=\"${option#*=}\"" ;;
+        --enabled=*)
+            shift; choiceOptions="$choiceOptions enabled=\"${option#*=}\"" ;;
+        --selected=*)
+            shift; choiceSelected="selected=\"${option#*=}\"" ;;
+        --visible=*)
+            shift; choiceOptions="$choiceOptions visible=\"${option#*=}\"" ;;
+        -*)
+            echo "Unrecognized addChoice option '$option'" >&2
+            exit 1
+            ;;
+        *)  break ;;
+    esac
+done
+
+
 if [[ -n "${pkgRoot}" ]] && [[ ! -d "${pkgRoot}" ]]; then
     echo "Error: addChoice missing,invalid or inexistent parameter \"--pkg-root=${pkgRoot}\""
     exit 1
@@ -314,9 +329,8 @@ if [[ "$ispkg" == true ]]; then
   # Build package.
   echo "[${title}]"
   if [[ -n "${noPayload}" ]]; then
-    if [[ -n "${noPayload}" ]]; then
-      cmd+=" ${noPayload}"
-    fi
+    cmd+=" ${noPayload}"
+
     if [[ -d "${SCRIPTS_PATH}/${title}" ]]; then
       cmd+=" --scripts ${SCRIPTS_PATH}/${title}"
     fi
@@ -383,6 +397,7 @@ if [[ "$ispkg" == true ]]; then
 fi
 }
 
+package() {
 echo "${bold}** Building ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg **${normal}"
 
 FAKE_SELECTED=""
@@ -418,8 +433,9 @@ do
   fi
 done
 
-cp -R "${SRCROOT}/package/Scripts.templates" "${SCRIPTS_PATH}"
-makeUtils
+cp -R "${SRCROOT}/package/Scripts.templates" "${SRCROOT}/compilations"/
+cp -R "${SRCROOT}/compilations/utils/partutil" "${SCRIPTS_PATH}"/Post/
+
 
 cat << DISTRIBUTION > "${DISTRIBUTION_PATH}"
 <?xml version="1.0"?>
@@ -627,8 +643,7 @@ rm -f "${DISTR1_PATH}"
 rm -f "${DISTR2_PATH}"
 rm -f "${DISTR3_PATH}"
 
-rm -rf "${SRCROOT}/compilations/package"
-mkdir "${SRCROOT}/compilations/package"
+
 cp -R  "${SRCROOT}/package/Resources" "${PACKAGE_TEMP_DIR}"
 modResourcesAtPath "${PACKAGE_TEMP_DIR}/Resources"
 pkgutil --flatten "${PACKAGE_TEMP_DIR}" "${SRCROOT}/compilations/package/${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg" || exit 1
@@ -638,8 +653,15 @@ if [[ -x "${SRCROOT}/compilations/utils/seticon" ]]; then
   "${SRCROOT}/compilations/utils/seticon" "${ICON_PATH}" \
   "${SRCROOT}/compilations/package/${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg"
 fi
-
 echo "${bold}Package name: ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.pkg${normal}"
+}
+rm -rf "${SRCROOT}/compilations/package"
+mkdir "${SRCROOT}/compilations/package"
+
+makeUtils
+if [[ $buildPackage -eq 1 ]]; then
+    package
+fi
 
 diskImage
 

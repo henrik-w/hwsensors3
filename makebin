@@ -31,10 +31,7 @@ fi
 buildv2=0
 xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
 case "$xver" in
-    9*)
-        buildv2=1
-    ;;
-    10*)
+    9* | 10*)
         buildv2=1
     ;;
     *)
@@ -42,6 +39,7 @@ case "$xver" in
         buildv2=0
     ;;
 esac
+
 if [[ $force64BitOnly -eq 1 ]]; then
   arch='ARCHS=x86_64 VALID_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES'
 fi
@@ -95,7 +93,7 @@ fi
 # building HWMonitorSMC.app v1.x
 echo "${bold}** Building HWMonitorSMC.app v1 **${normal}"
 cd  "${SRCROOT}/trunk/hwmonitor"
-xcodebuild $quiet -project HWMonitorSMC.xcodeproj \
+xcodebuild $arch $quiet -project HWMonitorSMC.xcodeproj \
                 -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                 -sdk macosx \
                 -configuration "${PREFERRED_CONF_APPS}" \
@@ -110,7 +108,7 @@ if [ "$buildv2" -eq "1" ]; then
   # do not forget to rebuild it as soon as you need it in Swift 5.
   echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
   cd  "${SRCROOT}/trunk/hwmonitor2"
-  xcodebuild $quiet -project HWMonitorSMC.xcodeproj \
+  xcodebuild $arch $quiet -project HWMonitorSMC.xcodeproj \
                     -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                     -sdk macosx \
                     -configuration "${PREFERRED_CONF_APPS}" \
