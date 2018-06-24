@@ -6,6 +6,8 @@ export LC_ALL=C
 bold=$(tput bold)
 normal=$(tput sgr0)
 
+quiet="-quiet"
+
 SRCROOT="$(dirname $0)"
 cd "${SRCROOT}"
 PREFERRED_SDK="macosx10.11" # Default sdk to build kexts. If exist
@@ -22,6 +24,22 @@ else
   echo "   ..using the sdk: $PREFERRED_SDK"
 fi
 }
+
+# HWMonitorSMC.app v2 can be compiled only with Xcode 9 + and swift 4+
+buildv2=0
+xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
+case "$xver" in
+    9*)
+        buildv2=1
+    ;;
+    10*)
+        buildv2=1
+    ;;
+    *)
+        quiet=""
+        buildv2=0
+    ;;
+esac
 
 rm -rf compilations/Extensions
 rm -rf compilations/HWMonitorSMC
@@ -45,7 +63,7 @@ else
   # building kernel extensions
   echo "${bold}** Building HWSensor's extensions r${VERSION} **${normal}"
   checkDefaultSDK
-  xcodebuild  -quiet \
+  xcodebuild  $quiet \
               -project HWSensors.xcodeproj \
               -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
               -sdk $PREFERRED_SDK \
@@ -72,7 +90,7 @@ fi
 # building HWMonitorSMC.app v1.x
 echo "${bold}** Building HWMonitorSMC.app v1 **${normal}"
 cd  "${SRCROOT}/trunk/hwmonitor"
-xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
+xcodebuild $quiet -project HWMonitorSMC.xcodeproj \
                 -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                 -sdk macosx \
                 -configuration "${PREFERRED_CONF_APPS}" \
@@ -81,21 +99,13 @@ xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
 cp -R "${SRCROOT}/compilations/HWMonitorSMC_SYMROOT/${PREFERRED_CONF_APPS}"/HWMonitorSMC.app \
                                               "${SRCROOT}/compilations/HWMonitorSMC/"
 
-# HWMonitorSMC.app v2 can be compiled only with Xcode 9 + and swift 4+
-buildv2=0
-xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
-case "$xver" in
-    9*)  buildv2=1;;
-    10*) buildv2=1;;
-    *)   buildv2=0;;
-esac
 
 if [ "$buildv2" -eq "1" ]; then
   # SystemKit.framenwork is a dependency now added in binary form at ../hwmonitor2/Framenworks
   # do not forget to rebuild it as soon as you need it in Swift 5.
   echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
   cd  "${SRCROOT}/trunk/hwmonitor2"
-  xcodebuild -quiet -project HWMonitorSMC.xcodeproj \
+  xcodebuild $quiet -project HWMonitorSMC.xcodeproj \
                     -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                     -sdk macosx \
                     -configuration "${PREFERRED_CONF_APPS}" \
