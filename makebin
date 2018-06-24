@@ -7,6 +7,8 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 quiet="-quiet"
+arch=""
+force64BitOnly=1
 
 SRCROOT="$(dirname $0)"
 cd "${SRCROOT}"
@@ -40,6 +42,9 @@ case "$xver" in
         buildv2=0
     ;;
 esac
+if [[ $force64BitOnly -eq 1 ]]; then
+  arch='ARCHS=x86_64 VALID_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES'
+fi
 
 rm -rf compilations/Extensions
 rm -rf compilations/HWMonitorSMC
@@ -63,7 +68,7 @@ else
   # building kernel extensions
   echo "${bold}** Building HWSensor's extensions r${VERSION} **${normal}"
   checkDefaultSDK
-  xcodebuild  $quiet \
+  xcodebuild  $arch $quiet \
               -project HWSensors.xcodeproj \
               -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
               -sdk $PREFERRED_SDK \
