@@ -1,6 +1,8 @@
 #!/bin/bash
 # vector sigma 2018
 
+MOUNT_ROOT=~
+eval MOUNT_ROOT="${MOUNT_ROOT}"
 SRCROOT="$(dirname $0)"
 cd "${SRCROOT}"
 
@@ -165,19 +167,19 @@ fi
 diskImage(){
 echo "${bold}** Building ${PROJ_NAME}-${PROJ_VER}_r${VERSION}.dmg **${normal}"
 local anyApp=0
-local device=""
+local disk=""
 local temp="${SRCROOT}/compilations/package/dmg"
-local vol="${PROJ_NAME}-${PROJ_VER}_r${VERSION}"
-local dmg="${SRCROOT}/compilations/package/${vol}.dmg"
+local volName="${PROJ_NAME}-${PROJ_VER}_r${VERSION}"
+local dmg="${SRCROOT}/compilations/package/${volName}.dmg"
 local app1="${SRCROOT}/compilations/HWMonitorSMC/HWMonitorSMC.app"
 local app2="${SRCROOT}/compilations/HWMonitorSMC2/HWMonitorSMC2.app"
 local readme="${SRCROOT}/package/README.pdf"
 
-if [[ -d "${HOME}/${vol}/Extensions" ]]; then
-  echo "detaching an old ${vol}.."
-  device=$(LC_ALL=C diskutil info "${HOME}/${vol}" 2>/dev/null | \
+if [[ -d "${MOUNT_ROOT}/${volName}/Extensions" ]]; then
+  echo "detaching an old ${volName}.."
+  disk=$(LC_ALL=C diskutil info "${MOUNT_ROOT}/${volName}" 2>/dev/null | \
                                sed -n 's/.*Part [oO]f Whole: *//p')
-  hdiutil detach -force $device -quiet
+  hdiutil detach -force "${disk}" -quiet
 fi
 
 mkdir "${temp}"
@@ -206,20 +208,20 @@ fi
 cd "${SRCROOT}/compilations/package"
 echo "creating dmg file.."
 
-hdiutil create -srcfolder "${temp}" -volname "${vol}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW "${vol}.dmg"
-hdiutil attach -readwrite -noverify -noautoopen "${dmg}" -mountroot "${HOME}"
-device=$(LC_ALL=C diskutil info "${HOME}/${vol}" 2>/dev/null | \
-                             sed -n 's/.*Part [oO]f Whole: *//p')
+hdiutil create -srcfolder "${temp}" -volname "${volName}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW "${volName}.dmg"
+disk=$(hdiutil attach -readwrite -noverify -noautoopen "${dmg}" -mountroot "${MOUNT_ROOT}" | awk '{print $1}' | sed -ne 's*/dev/**p' )
+# give the time to the volume to mount
+sleep 3
 
 echo "setting images.."
 # set images
-cp -R "${DMG_ICON_PATH}" "${HOME}/${vol}"/.VolumeIcon.icns
-SetFile -c icnC "${HOME}/${vol}"/.VolumeIcon.icns
-SetFile -a C "${HOME}/${vol}"
+cp -R "${DMG_ICON_PATH}" "${MOUNT_ROOT}/${volName}"/.VolumeIcon.icns
+SetFile -c icnC "${MOUNT_ROOT}/${volName}"/.VolumeIcon.icns
+SetFile -a C "${MOUNT_ROOT}/${volName}"
 
 osascript <<EOF
 tell application "Finder"
-  tell disk "${vol}"
+  tell disk "${volName}"
     open
     set current view of container window to icon view
     set toolbar visible of container window to false
@@ -234,12 +236,13 @@ tell application "Finder"
 end tell
 EOF
 
-chmod -Rf go-w "${HOME}/${vol}" &> /dev/null
-bless --folder "${HOME}/${vol}" --openfolder "${HOME}/${vol}"
+chmod -Rf go-w "${MOUNT_ROOT}/${volName}" &> /dev/null
+bless --folder "${MOUNT_ROOT}/${volName}" --openfolder "${MOUNT_ROOT}/${volName}"
 
 # clean
-echo "detaching.."
-hdiutil detach -force $device -quiet
+echo "ejecting.."
+diskutil eject $disk
+
 rm -rf "${temp}"
 if [[ -x "${SRCROOT}/compilations/utils/seticon" ]]; then
   "${SRCROOT}/compilations/utils/seticon" "${DMG_ICON_PATH}" "${dmg}"
