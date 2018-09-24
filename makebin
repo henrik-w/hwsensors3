@@ -9,6 +9,7 @@ normal=$(tput sgr0)
 quiet="-quiet"
 arch=""
 force64BitOnly=1
+UseModernBuildSystem=""
 
 SRCROOT="$(dirname $0)"
 cd "${SRCROOT}"
@@ -31,7 +32,11 @@ fi
 buildv2=0
 xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
 case "$xver" in
-    9* | 10*)
+    9*)
+        buildv2=1
+    ;;
+    10*)
+        UseModernBuildSystem='-UseModernBuildSystem=0'
         buildv2=1
     ;;
     *)
@@ -71,6 +76,7 @@ else
               -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
               -sdk $PREFERRED_SDK \
               -configuration "${PREFERRED_CONF}" \
+              ALWAYS_SEARCH_USER_PATHS=0 "${UseModernBuildSystem}" \
               SYMROOT="${SRCROOT}/compilations/Extensions_SYMROOT" || exit 1
 
   cp -R "${SRCROOT}/compilations/Extensions_SYMROOT/${PREFERRED_CONF}"/*.kext \
