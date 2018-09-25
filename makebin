@@ -76,7 +76,7 @@ else
               -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
               -sdk $PREFERRED_SDK \
               -configuration "${PREFERRED_CONF}" \
-              ALWAYS_SEARCH_USER_PATHS=0 "${UseModernBuildSystem}" \
+              ALWAYS_SEARCH_USER_PATHS=0 $UseModernBuildSystem \
               SYMROOT="${SRCROOT}/compilations/Extensions_SYMROOT" || exit 1
 
   cp -R "${SRCROOT}/compilations/Extensions_SYMROOT/${PREFERRED_CONF}"/*.kext \
