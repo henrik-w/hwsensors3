@@ -32,9 +32,6 @@ fi
 buildv2=0
 xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
 case "$xver" in
-    9*)
-        buildv2=1
-    ;;
     10*)
         UseModernBuildSystem='-UseModernBuildSystem=0'
         buildv2=1
