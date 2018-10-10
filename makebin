@@ -36,6 +36,9 @@ case "$xver" in
         UseModernBuildSystem='-UseModernBuildSystem=0'
         buildv2=1
     ;;
+    9.4.1)
+        buildv2=1
+    ;;
     *)
         quiet=""
         buildv2=0
