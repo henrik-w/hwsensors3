@@ -28,11 +28,11 @@ else
 fi
 }
 
-# HWMonitorSMC.app v2 can be compiled only with Xcode 9 + and swift 4+
+# HWMonitorSMC.app v2 can be compiled only with Xcode 9.4.1 + and swift 4.2
 buildv2=0
 xver=$(/usr/bin/xcodebuild -version | grep 'Xcode' | awk '{print $NF}')
 case "$xver" in
-    10*)
+    1*)
         UseModernBuildSystem='-UseModernBuildSystem=0'
         buildv2=1
     ;;
@@ -110,8 +110,12 @@ cp -R "${SRCROOT}/compilations/HWMonitorSMC_SYMROOT/${PREFERRED_CONF_APPS}"/HWMo
 
 
 if [ "$buildv2" -eq "1" ]; then
-  # SystemKit.framenwork is a dependency now added in binary form at ../hwmonitor2/Framenworks
-  # do not forget to rebuild it as soon as you need it in Swift 5.
+  if [[ ! -d "/Library/Frameworks/IntelPowerGadget.framework" ]]; then
+    printf "\033[0;31mHWMonitorSMC2 require the IntelPowerGadget.framework to be installed,\n"
+    printf "download here:\033[0m https://software.intel.com/en-us/articles/intel-power-gadget-20\n\n"
+    sleep 2
+    exit 0
+  fi
   echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
   cd  "${SRCROOT}/trunk/hwmonitor2"
   xcodebuild $arch $quiet -project HWMonitorSMC.xcodeproj \
@@ -122,5 +126,7 @@ if [ "$buildv2" -eq "1" ]; then
   cp -R "${SRCROOT}/compilations/HWMonitorSMC2_SYMROOT/${PREFERRED_CONF_APPS}"/HWMonitorSMC2.app \
                                                           "${SRCROOT}/compilations/HWMonitorSMC2/"
 else
-  echo "HWMonitorSMC.app v2.x requires Xcode 9 +"
+  echo "HWMonitorSMC.app v2.x requires Xcode 9.4.1 +"
 fi
+
+exit 0
