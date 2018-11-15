@@ -110,12 +110,6 @@ cp -R "${SRCROOT}/compilations/HWMonitorSMC_SYMROOT/${PREFERRED_CONF_APPS}"/HWMo
 
 
 if [ "$buildv2" -eq "1" ]; then
-  if [[ ! -d "/Library/Frameworks/IntelPowerGadget.framework" ]]; then
-    printf "\033[0;31mHWMonitorSMC2 require the IntelPowerGadget.framework to be installed,\n"
-    printf "download here:\033[0m https://software.intel.com/en-us/articles/intel-power-gadget-20\n\n"
-    sleep 2
-    exit 0
-  fi
   echo "${bold}** Building HWMonitorSMC.app v2 **${normal}"
   cd  "${SRCROOT}/trunk/hwmonitor2"
   xcodebuild $arch $quiet -project HWMonitorSMC.xcodeproj \
