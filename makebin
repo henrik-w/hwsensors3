@@ -9,6 +9,7 @@ normal=$(tput sgr0)
 quiet="-quiet"
 arch=""
 force64BitOnly=1
+branchPath="trunk" # branchPath="branches/development"
 UseModernBuildSystem=""
 
 SRCROOT="$(dirname $0)"
@@ -49,6 +50,12 @@ if [[ $force64BitOnly -eq 1 ]]; then
   arch='ARCHS=x86_64 VALID_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES'
 fi
 
+if [[ "${1}" == clean ]]; then
+  rm -rf compilations package/utils/partutil/build package/utils/seticon/build \
+         "${branchPath}"/hwmonitor/build "${branchPath}"/hwmonitor2/build "${branchPath}"/build
+  exit 0
+fi
+
 rm -rf compilations/Extensions
 rm -rf compilations/HWMonitorSMC
 rm -rf compilations/HWMonitorSMC2
@@ -60,7 +67,9 @@ mkdir -p compilations/Extensions_SYMROOT
 mkdir -p compilations/HWMonitorSMC_SYMROOT
 mkdir -p compilations/HWMonitorSMC2_SYMROOT
 
-cd trunk
+cd "${branchPath}"
+
+echo "${bold}** Using HWSensor $(basename ${branchPath}) **${normal}"
 
 if [[ -d ../kexts_prebuilt ]]; then
   # building kernel extensions
@@ -76,7 +85,7 @@ else
               -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
               -sdk $PREFERRED_SDK \
               -configuration "${PREFERRED_CONF}" \
-              ALWAYS_SEARCH_USER_PATHS=0 $UseModernBuildSystem \
+              ALWAYS_SEARCH_USER_PATHS=0 RUN_CLANG_STATIC_ANALYZER=0 $UseModernBuildSystem \
               SYMROOT="${SRCROOT}/compilations/Extensions_SYMROOT" || exit 1
 
   cp -R "${SRCROOT}/compilations/Extensions_SYMROOT/${PREFERRED_CONF}"/*.kext \
@@ -98,7 +107,7 @@ fi
 
 # building HWMonitorSMC.app v1.x
 echo "${bold}** Building HWMonitorSMC.app v1 **${normal}"
-cd  "${SRCROOT}/trunk/hwmonitor"
+cd  "${SRCROOT}/${branchPath}/hwmonitor"
 xcodebuild $arch $quiet -project HWMonitorSMC.xcodeproj \
                 -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                 -sdk macosx \
@@ -127,7 +136,7 @@ if [ "$buildv2" -eq "1" ]; then
     ;;
   esac
 
-  cd  "${SRCROOT}/trunk/hwmonitor2"
+  cd  "${SRCROOT}/${branchPath}/hwmonitor2"
   xcodebuild $arch $quiet -project HWMonitorSMC.xcodeproj \
                     -IDEBuildOperationMaxNumberOfConcurrentCompileTasks=`sysctl -n hw.ncpu` \
                     -sdk macosx \
