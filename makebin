@@ -9,7 +9,7 @@ normal=$(tput sgr0)
 quiet="-quiet"
 arch=""
 force64BitOnly=1
-branchPath="trunk" # branchPath="branches/development"
+branchPath="trunk" # branchPath="trunk" # branchPath="branches/development"
 UseModernBuildSystem=""
 
 SRCROOT="$(dirname $0)"
