@@ -1,22 +1,31 @@
 #!/bin/bash
 # vector sigma 2018
 
-export LC_ALL=C
-
 bold=$(tput bold)
 normal=$(tput sgr0)
+
+# configuration file to keep personal settings to build the project
+if [[ -f ~/hwconf.profile ]]; then
+  echo 'sourcing custom hwconf.profile'
+  source ~/hwconf.profile # user configuration file in Home folder. Takes precedence
+elif [[ -f hwconf.profile ]]; then
+  # standard configuration file, can be overwritten during updates,
+  # make a copy in Home directory for customizations
+  source hwconf.profile
+fi
+
+SRCROOT="$(dirname $0)"
+cd "${SRCROOT}"
 
 quiet="-quiet"
 arch=""
 force64BitOnly=1
-branchPath="trunk" # branchPath="trunk" # branchPath="branches/development"
+branchPath=${branchPath:-'trunk'}
 UseModernBuildSystem=""
 
-SRCROOT="$(dirname $0)"
-cd "${SRCROOT}"
-PREFERRED_SDK="macosx10.11" # Default sdk to build kexts. If exist
-PREFERRED_CONF='Release 10.6' # Default configuration to build kexts.
-PREFERRED_CONF_APPS='Release' # Default configuration to build kexts.
+PREFERRED_SDK=${PREFERRED_SDK:-macosx10.11}
+PREFERRED_CONF=${PREFERRED_CONF:-'Release 10.6'}
+PREFERRED_CONF_APPS=${PREFERRED_CONF_APPS:-'Release'}
 
 VERSION=$(svn info | grep '^Revision:' | tr -cd [:digit:])
 
