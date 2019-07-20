@@ -106,6 +106,7 @@ enum {																								// Apple loves to have the goodies private
     kIOPMSetACAdaptorConnected	= (1<<18)
 };
 
+// Battery state _BST
 enum {
 	BatteryFullyCharged	= 0,
 	BatteryDischarging	= (1<<0),
@@ -113,6 +114,23 @@ enum {
 	BatteryCritical		= (1<<2),
 //	BatteryWithAc		= (1<<7)
 };
+
+/*  Smart Battery Status Message Bits                   */
+/*  Smart Battery Data Specification - rev 1.1          */
+/*  Section 5.4 page 42                                 */
+enum {
+  kBOverChargedAlarmBit             = 0x8000,
+  kBTerminateChargeAlarmBit         = 0x4000,
+  kBOverTempAlarmBit                = 0x1000,
+  kBTerminateDischargeAlarmBit      = 0x0800,
+  kBRemainingCapacityAlarmBit       = 0x0200,
+  kBRemainingTimeAlarmBit           = 0x0100,
+  kBInitializedStatusBit            = 0x0080,
+  kBDischargingStatusBit            = 0x0040,
+  kBFullyChargedStatusBit           = 0x0020,
+  kBFullyDischargedStatusBit        = 0x0010
+};
+
 
 struct BatteryClass {
 	UInt32	LastFullChargeCapacity;
