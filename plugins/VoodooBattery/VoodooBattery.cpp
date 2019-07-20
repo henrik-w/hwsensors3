@@ -195,7 +195,13 @@ bool VoodooBattery::start(IOService * provider) {
         snprintf(key, 5, KEY_FORMAT_BAT_AMPERAGE, Index);
         DebugLog("Adding key %s", key);
         addSensor(key, TYPE_UI16, 2, Index);
-        
+        snprintf(key, 5, KEY_FORMAT_BAT_STATUS, Index);
+        DebugLog("Adding key %s", key);
+        addSensor(key, TYPE_UI16, 2, Index);
+        snprintf(key, 5, KEY_FORMAT_BAT_REMAINING_CAPACITY, Index);
+        DebugLog("Adding key %s", key);
+        addSensor(key, TYPE_UI16, 2, Index);
+
       }
     }
     snprintf(key, 5, KEY_BAT_POWERED);
@@ -204,6 +210,15 @@ bool VoodooBattery::start(IOService * provider) {
     addSensor(key, TYPE_UI8, 1, 0);
     snprintf(key, 5, KEY_BAT_INSERTED);
     addSensor(key, TYPE_UI8, 1, 0);
+    snprintf(key, 5, KEY_BAT_CHARGE_CODE);
+    addSensor(key, TYPE_UI8, 1, 0);
+    snprintf(key, 5, KEY_NUMBER_OF_ADAPTERS);
+    addSensor(key, TYPE_UI8, 1, 0);
+    snprintf(key, 5, KEY_CONNECTED_ADAPTER);
+    addSensor(key, TYPE_UI8, 1, 0);
+    snprintf(key, 5, KEY_ADAPTER_AMPERAGE);
+    addSensor(key, TYPE_UI16, 2, 0);
+
   }
 
 	return true;
@@ -621,7 +636,7 @@ IOReturn VoodooBattery::callPlatformFunction(const OSSymbol *functionName,
         if (OSNumber *number = OSDynamicCast(OSNumber, sensors->getObject(name))) {
           index = number->unsigned16BitValue();
           if (index >= MaxBatteriesSupported) {
-            WarningLog("called battery # %d", index);
+            WarningLog("called battery # %d for A%c", index, name[3]);
             return kIOReturnBadArgument;
           }
         }
@@ -639,6 +654,69 @@ IOReturn VoodooBattery::callPlatformFunction(const OSSymbol *functionName,
         }
         memcpy(data, &value, 2);
         return kIOReturnSuccess;
+      } else if ((name[0] == 'B') && (name[2] == 'S') && (name[3] == 't')) {
+        UInt32 state = 0;
+        batNum = name[1] - 0x30;
+        if (OSNumber *number = OSDynamicCast(OSNumber, sensors->getObject(name))) {
+          index = number->unsigned16BitValue();
+          if (index >= MaxBatteriesSupported) {
+            WarningLog("called battery # %d for St", index);
+            return kIOReturnBadArgument;
+          }
+        }
+        BatteryStatus(batNum);
+        state = Battery[batNum].State;
+        value = kBInitializedStatusBit;
+        if (state & BatteryDischarging)
+          value |= kBDischargingStatusBit;
+        if (state & BatteryCritical)
+          value |= kBFullyDischargedStatusBit;
+        if ((state & 3) == BatteryFullyCharged)
+          value |= kBFullyChargedStatusBit | kBTerminateChargeAlarmBit;
+        memcpy(data, &value, 2);
+        return kIOReturnSuccess;
+      } else if ((name[0] == 'B') && (name[2] == 'R') && (name[3] == 'M')) {
+        batNum = name[1] - 0x30;
+        if (OSNumber *number = OSDynamicCast(OSNumber, sensors->getObject(name))) {
+          index = number->unsigned16BitValue();
+          if (index >= MaxBatteriesSupported) {
+            WarningLog("called battery # %d for RM", index);
+            return kIOReturnBadArgument;
+          }
+        }
+        BatteryStatus(batNum);
+        value = Battery[batNum].RemainingCapacity;
+        memcpy(data, &value, 2);
+        return kIOReturnSuccess;
+      } else if ((name[0] == 'B') && (name[1] == 'R') &&
+                 (name[2] == 'S') && (name[3] == 'C')) {
+        UInt32 batrc = 0;
+        value = 0;
+        for (UInt8 i = 0; i < BatteryCount; i++) {
+          batNum = i;
+          if (BatteryConnected[batNum]) {
+            BatteryStatus(batNum);
+            batrc = Battery[batNum].RemainingCapacity * 100 / Battery[batNum].LastFullChargeCapacity;
+            value = (value << 8) | batrc;
+          }
+        }
+        memcpy(data, &value, 2); //assumes only two battery possible
+        return kIOReturnSuccess;
+      } else if ((name[0] == 'C') && (name[1] == 'H') && (name[2] == 'L') && (name[3] == 'C')) {
+        UInt32 state = 0;
+        value = 1;
+        for (UInt8 i = 0; i < BatteryCount; i++) {
+          batNum = i;
+          if (BatteryConnected[batNum]) {
+            BatteryStatus(batNum);
+            state = Battery[batNum].State;
+            if ((state & 3) == BatteryFullyCharged) {
+              value = 2; //if one battery is fully charged
+              break;
+            }
+          }
+        }
+
       } else if ((name[0] == 'B') && (name[1] == 'A') &&
                  (name[2] == 'T') && (name[3] == 'P')) {
         value = ExternalPowerConnected?0:1;
@@ -648,6 +726,19 @@ IOReturn VoodooBattery::callPlatformFunction(const OSSymbol *functionName,
       } else if ((name[0] == 'B') && (name[1] == 'N') &&
                  (name[2] == 'u') && (name[3] == 'm')) {
         value = BatteryCount;
+      } else if ((name[0] == 'A') && (name[1] == 'C') &&
+                 (name[2] == '-') && (name[3] == 'N')) {
+        value = AcAdapterCount;
+        memcpy(data, &value, 2);
+        return kIOReturnSuccess;
+      } else if ((name[0] == 'A') && (name[1] == 'C') &&
+                 (name[2] == '-') && (name[3] == 'W')) {
+        value = 1;  //numeration from 1
+      } else if ((name[0] == 'A') && (name[1] == 'C') &&
+                 (name[2] == 'I') && (name[3] == 'C')) {
+        value = 0x0020; //big endian will be 0x2000 = 8192mA = 96W Is it enough?
+        memcpy(data, &value, 2);
+        return kIOReturnSuccess;
       } else {
         return kIOReturnBadArgument;
       }

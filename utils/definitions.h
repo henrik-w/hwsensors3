@@ -98,11 +98,16 @@
 #define KEY_BAT0_AMPERAGE                       "B0AC"
 #define KEY_FORMAT_BAT_VOLTAGE                  "B%XAV"
 #define KEY_FORMAT_BAT_AMPERAGE                 "B%XAC"
+#define KEY_FORMAT_BAT_STATUS                   "B%XSt"
+#define KEY_FORMAT_BAT_REMAINING_CAPACITY       "B%XRM"
 
 #define KEY_BAT_POWERED                         "BATP"
 #define KEY_NUMBER_OF_BATTERIES                 "BNum"
 #define KEY_BAT_INSERTED                        "BBIN"
-
+#define KEY_BAT_CHARGE_CODE                     "CHLC"
+#define KEY_ADAPTER_AMPERAGE                    "ACIC"
+#define KEY_NUMBER_OF_ADAPTERS                  "AC-N"
+#define KEY_CONNECTED_ADAPTER                   "AC-W"
 
 #define KEY_NORTHBRIDGE_VOLTAGE                 "VN0C"
 

@@ -8,8 +8,8 @@
  */
 
 #include "ACPIMonitor.h"
-#include "FakeSMC.h"
-#include "utils.h"
+#include "../../fakesmc/FakeSMC.h"
+#include "../../utils/utils.h"
 
 #define Debug FALSE
 

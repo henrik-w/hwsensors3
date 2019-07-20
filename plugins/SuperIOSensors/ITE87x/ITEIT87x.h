@@ -73,6 +73,7 @@ enum IT87xModel
   IT8771E = 0x8771,
   IT8772E = 0x8772,
   IT8792E = 0x8792,
+  IT8987E = 0x8987
 };
 
 enum SuperIOSensorGroupEx {
