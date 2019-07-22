@@ -217,13 +217,6 @@
 						<string>ch8*</string>
 						<string>m82</string>
 					</array>
-					<key>WKTP</key>
-					<array>
-						<string>ui8 </string>
-						<data>
-						AA==
-						</data>
-					</array>
 				</dict>
 				<key>debug</key>
 				<false/>
