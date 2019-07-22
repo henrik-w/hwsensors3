@@ -49,6 +49,8 @@
 			<string>IOACPIPlatformDevice</string>
 			<key>keysToAdd</key>
 			<dict>
+				<key>MSLD</key>
+				<string>MSLD-1</string>
 				<key>TCRR</key>
 				<string>TA0P</string>
 				<key>TCRW</key>
