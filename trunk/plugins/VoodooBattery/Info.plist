@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleGetInfoString</key>
-	<string>1.2.1, © 2009 Superhai, ${MODULE_VERSION} 2017 Slice</string>
+	<string>1.2.1, © 2009 Superhai, ${MODULE_VERSION} 2019 Slice</string>
 	<key>CFBundleIconFile</key>
 	<string></string>
 	<key>CFBundleIdentifier</key>
@@ -29,7 +29,7 @@
 		<key>BatteryManager</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
-			<string>com.superhai.driver.${PRODUCT_NAME:identifier}</string>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>IOClass</key>
 			<string>VoodooBattery</string>
 			<key>IOMatchCategory</key>

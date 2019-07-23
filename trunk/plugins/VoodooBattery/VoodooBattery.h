@@ -217,6 +217,7 @@ private:
 	bool	BatteriesConnected;
 	bool	BatteriesAreFull;
 	bool	PowerUnitIsWatt;
+  bool  firstTime;
 	// *** Other ***
 	BatteryClass				Battery[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		BatteryDevice[MaxBatteriesSupported];
