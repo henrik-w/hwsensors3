@@ -64,7 +64,7 @@ bool VoodooBattery::init(OSDictionary *properties) {
   if (!super::init(properties)) {
     return false;
   }
-  
+  firstTime = true;
   if (!(sensors = OSDictionary::withCapacity(0))) {
     return false;
   }
@@ -624,6 +624,7 @@ IOReturn VoodooBattery::callPlatformFunction(const OSSymbol *functionName,
   UInt32 index = 0;
   int batNum = 0;
   //  OSString* key;
+
   
   if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
     const char* name = (const char*)param1;
@@ -719,7 +720,11 @@ IOReturn VoodooBattery::callPlatformFunction(const OSSymbol *functionName,
 
       } else if ((name[0] == 'B') && (name[1] == 'A') &&
                  (name[2] == 'T') && (name[3] == 'P')) {
-        value = ExternalPowerConnected?0:1;
+        if (firstTime) {
+          value = 1;
+          firstTime = false;
+        } else
+          value = ExternalPowerConnected?0:1;
       } else if ((name[0] == 'B') && (name[1] == 'B') &&
                  (name[2] == 'I') && (name[3] == 'N')) {
         value = BatteriesConnected;
