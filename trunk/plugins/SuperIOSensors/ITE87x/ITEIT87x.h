@@ -17,7 +17,7 @@
 #include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOKitKeys.h>
 
-#include "SuperIOFamily.h"
+#include "../SuperIOFamily/SuperIOFamily.h"
 
 const UInt8 ITE_ENVIRONMENT_CONTROLLER_LDN				= 0x04;
 
@@ -62,6 +62,7 @@ enum IT87xModel
   IT8665F = 0x8665,
   IT8686E = 0x8686,
   IT8705F = 0x8705,
+  IT8708F = 0x8708,
   IT8712F = 0x8712,
   IT8716F = 0x8716,
   IT8718F = 0x8718,

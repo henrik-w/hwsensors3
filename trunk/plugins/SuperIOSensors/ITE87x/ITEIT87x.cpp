@@ -272,6 +272,7 @@ bool IT87x::probePort() {
     case IT8665F:
     case IT8686E:
     case IT8705F:
+    case IT8708F:
     case IT8712F:
     case IT8716F:
     case IT8718F:
@@ -356,6 +357,7 @@ const char *IT87x::getModelName() {
     case IT8665F: return "IT8665F";
     case IT8686E: return "IT8686E";
     case IT8705F: return "IT8705F";
+    case IT8708F: return "IT8708F";
     case IT8712F: return "IT8712F";
     case IT8716F: return "IT8716F";
     case IT8718F: return "IT8718F";
