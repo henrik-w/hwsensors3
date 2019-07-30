@@ -15,7 +15,14 @@
 #define I8K_SMM_SET_FAN         0x01a3
 #define I8K_SMM_GET_FAN         0x00a3
 #define I8K_SMM_GET_SPEED       0x02a3
+#define I8K_SMM_GET_FAN_TYPE    0x03a3
+#define I8K_SMM_GET_NOM_SPEED   0x04a3
+#define I8K_SMM_GET_TOLERANCE   0x05a3
 #define I8K_SMM_GET_TEMP        0x10a3
+#define I8K_SMM_GET_TEMP_TYPE   0x11a3
+#define I8K_SMM_GET_POWER_TYPE  0x22a3
+#define I8K_SMM_GET_POWER_STATUS   0x24a3
+#define I8K_SMM_GET_DOCK_STATE  0x40a3
 #define I8K_SMM_GET_DELL_SIG1   0xfea3
 #define I8K_SMM_GET_DELL_SIG2   0xffa3
 #define I8K_SMM_BIOS_VERSION    0x00a6

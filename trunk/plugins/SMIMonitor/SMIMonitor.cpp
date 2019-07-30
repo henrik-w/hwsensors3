@@ -24,7 +24,7 @@ bool SMIMonitor::addSensor(const char* key, const char* type, unsigned int size)
   if (kIOReturnSuccess != fakeSMC->callPlatformFunction(kFakeSMCAddKeyHandler,
                                                         false, (void *)key,
                                                         (void *)type,
-                                                        (void *)size,
+                                                        (void *)(size_t)size,
                                                         (void *)this)) {
     WarningLog("Can't add key %s to fake SMC device, kext will not load", key);
     return false;
@@ -114,32 +114,31 @@ inline int i8k_smm(SMMRegisters *regs) {
   int rc;
   int eax = regs->eax;
   
-  asm("pushl %%eax\n\t" \
-      "movl 0(%%eax),%%edx\n\t" \
-      "push %%edx\n\t" \
-      "movl 4(%%eax),%%ebx\n\t" \
-      "movl 8(%%eax),%%ecx\n\t" \
-      "movl 12(%%eax),%%edx\n\t" \
-      "movl 16(%%eax),%%esi\n\t" \
-      "movl 20(%%eax),%%edi\n\t" \
-      "popl %%eax\n\t" \
-      "out %%al,$0xb2\n\t" \
-      "out %%al,$0x84\n\t" \
-      "xchgl %%eax,(%%esp)\n\t" \
-      "movl %%ebx,4(%%eax)\n\t" \
-      "movl %%ecx,8(%%eax)\n\t" \
-      "movl %%edx,12(%%eax)\n\t" \
-      "movl %%esi,16(%%eax)\n\t" \
-      "movl %%edi,20(%%eax)\n\t" \
-      "popl %%edx\n\t" \
-      "movl %%edx,0(%%eax)\n\t" \
-      "lahf\n\t" \
-      "shrl $8,%%eax\n\t" \
-      "andl $1,%%eax\n" \
-      : "=a" (rc)
-      : "a" (regs)
-      : "%ebx", "%ecx", "%edx", "%esi", "%edi", "memory"
-      );
+  asm volatile("pushq %%rax\n\t"
+               "movl 0(%%rax),%%edx\n\t"
+               "pushq %%rdx\n\t"
+               "movl 4(%%rax),%%ebx\n\t"
+               "movl 8(%%rax),%%ecx\n\t"
+               "movl 12(%%rax),%%edx\n\t"
+               "movl 16(%%rax),%%esi\n\t"
+               "movl 20(%%rax),%%edi\n\t"
+               "popq %%rax\n\t"
+               "out %%al,$0xb2\n\t"
+               "out %%al,$0x84\n\t"
+               "xchgq %%rax,(%%rsp)\n\t"
+               "movl %%ebx,4(%%rax)\n\t"
+               "movl %%ecx,8(%%rax)\n\t"
+               "movl %%edx,12(%%rax)\n\t"
+               "movl %%esi,16(%%rax)\n\t"
+               "movl %%edi,20(%%rax)\n\t"
+               "popq %%rdx\n\t"
+               "movl %%edx,0(%%rax)\n\t"
+               "pushfq\n\t"
+               "popq %%rax\n\t"
+               "andl $1,%%eax\n"
+               : "=a"(rc)
+               :    "a"(regs)
+               :    "%ebx", "%ecx", "%edx", "%esi", "%edi", "memory");
   //example to do
   //outb((UInt16)(address), WINBOND_BANK_SELECT_REGISTER);
   
@@ -185,16 +184,18 @@ bool SMIMonitor::i8k_get_dell_sig_aux(int fn) {
   
   regs.eax = fn;
   if (i8k_smm(&regs) < 0) {
+    WarningLog("No function 0x%x", fn);
     return false;
   }
-  
-  return ((regs.eax == 1145651527) && (regs.edx == 1145392204));
+  InfoLog();
+  return ((regs.eax == 0x44494147 /*DIAG*/) &&
+          (regs.edx == 0x44454C4C /*DELL*/));
 }
 
 bool SMIMonitor::i8k_get_dell_signature(void) {
   
-  return (i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG1) &&
-          i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG2));
+  return (i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG1)); // &&
+        //  i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG2));
 }
 
 
@@ -207,6 +208,7 @@ int SMIMonitor::i8k_get_power_status(void) {
   
   regs.eax = I8K_SMM_POWER_STATUS;
   if ((rc=i8k_smm(&regs)) < 0) {
+    WarningLog("No power status");
     return rc;
   }
   
