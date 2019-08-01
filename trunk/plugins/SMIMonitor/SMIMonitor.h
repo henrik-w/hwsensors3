@@ -2,13 +2,18 @@
  *  SMIMonitor.h
  *  HWSensors
  *
- *  Created by Slice 2014.
+ *  Copyright (C) 2001  Massimo Dal Zotto <dz@debian.org>
+ *  http://www.debian.org/~dz/i8k/
+ *  more work https://www.diefer.de/i8kfan/index.html , 2007
+ *
+ *  FakeSMC plugin created by Slice 2014.
  *
  */
 
 #include <IOKit/IOService.h>
 #include "IOKit/acpi/IOACPIPlatformDevice.h"
 #include <IOKit/IOTimerEventSource.h>
+#include <i386/proc_reg.h>
 
 #define I8K_SMM_FN_STATUS       0x0025
 #define I8K_SMM_POWER_STATUS    0x0069   /* 0x85*/
@@ -25,7 +30,7 @@
 #define I8K_SMM_GET_DOCK_STATE  0x40a3
 #define I8K_SMM_GET_DELL_SIG1   0xfea3
 #define I8K_SMM_GET_DELL_SIG2   0xffa3
-#define I8K_SMM_BIOS_VERSION    0x00a6
+#define I8K_SMM_BIOS_VERSION    0x00a6  /* not confirmed*/
 
 #define I8K_FAN_MULT            30
 #define I8K_MAX_TEMP            127
@@ -74,6 +79,12 @@ typedef struct {
 } SMMRegisters;
 
 #define INIT_REGS               SMMRegisters regs = { 0, 0, 0, 0, 0, 0 }
+
+extern "C" {
+  void mp_rendezvous_no_intrs(void (*action_func)(void *), void * arg);
+  int cpu_number(void);
+};
+
 
 class SMIMonitor : public IOService
 {
