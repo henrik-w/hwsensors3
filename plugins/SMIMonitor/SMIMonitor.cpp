@@ -109,11 +109,18 @@ Method (SMI, 2, NotSerialized)
 }
 */
 
-inline int i8k_smm(SMMRegisters *regs) {
+SMMRegisters *globalRegs;
+static int gRc;
+
+//inline
+static
+int smm(SMMRegisters *regs)
+{
   
   int rc;
   int eax = regs->eax;
-  
+
+#if __LP64__
   asm volatile("pushq %%rax\n\t"
                "movl 0(%%rax),%%edx\n\t"
                "pushq %%rdx\n\t"
@@ -139,8 +146,33 @@ inline int i8k_smm(SMMRegisters *regs) {
                : "=a"(rc)
                :    "a"(regs)
                :    "%ebx", "%ecx", "%edx", "%esi", "%edi", "memory");
-  //example to do
-  //outb((UInt16)(address), WINBOND_BANK_SELECT_REGISTER);
+#else
+  asm volatile("pushl %%eax\n\t"
+               "movl 0(%%eax),%%edx\n\t"
+               "push %%edx\n\t"
+               "movl 4(%%eax),%%ebx\n\t"
+               "movl 8(%%eax),%%ecx\n\t"
+               "movl 12(%%eax),%%edx\n\t"
+               "movl 16(%%eax),%%esi\n\t"
+               "movl 20(%%eax),%%edi\n\t"
+               "popl %%eax\n\t"
+               "out %%al,$0xb2\n\t"
+               "out %%al,$0x84\n\t"
+               "xchgl %%eax,(%%esp)\n\t"
+               "movl %%ebx,4(%%eax)\n\t"
+               "movl %%ecx,8(%%eax)\n\t"
+               "movl %%edx,12(%%eax)\n\t"
+               "movl %%esi,16(%%eax)\n\t"
+               "movl %%edi,20(%%eax)\n\t"
+               "popl %%edx\n\t"
+               "movl %%edx,0(%%eax)\n\t"
+               "lahf\n\t"
+               "shrl $8,%%eax\n\t"
+               "andl $1,%%eax\n"
+               : "=a"(rc)
+               :    "a"(regs)
+               :    "%ebx", "%ecx", "%edx", "%esi", "%edi", "memory");
+#endif
   
   if ((rc != 0) || ((regs->eax & 0xffff) == 0xffff) || (regs->eax == eax)) {
     return -1;
@@ -149,12 +181,28 @@ inline int i8k_smm(SMMRegisters *regs) {
   return 0;
 }
 
+void read_smi(void * magic) {
+  SMMRegisters *regs = (SMMRegisters *)magic;
+  volatile UInt32 i = cpu_number();
+  if (i == 0) { /* SMM requires CPU 0 */
+    gRc = smm(regs);
+  } else gRc = -1;
+}
+
+int i8k_smm(SMMRegisters *regs)
+{
+//  size_t magic = 0;
+//  globalRegs = regs;
+  mp_rendezvous_no_intrs(read_smi, (void *)regs);
+  return gRc;
+}
+
 int SMIMonitor::i8k_get_bios_version(void) {
   INIT_REGS;
   int rc;
   
   regs.eax = I8K_SMM_BIOS_VERSION;
-  if ((rc=i8k_smm(&regs)) < 0) {
+  if ((rc = i8k_smm(&regs)) < 0) {
     return rc;
   }
   
@@ -180,14 +228,14 @@ int SMIMonitor::i8k_get_cpu_temp(void) {
 
 bool SMIMonitor::i8k_get_dell_sig_aux(int fn) {
   INIT_REGS;
-//  int rc;
+  int rc;
   
   regs.eax = fn;
-  if (i8k_smm(&regs) < 0) {
+  if ((rc=i8k_smm(&regs)) < 0) {
     WarningLog("No function 0x%x", fn);
     return false;
   }
-  InfoLog();
+  InfoLog("Got sigs %x and %x", regs.eax, regs.edx);
   return ((regs.eax == 0x44494147 /*DIAG*/) &&
           (regs.edx == 0x44454C4C /*DELL*/));
 }
@@ -205,13 +253,17 @@ bool SMIMonitor::i8k_get_dell_signature(void) {
 int SMIMonitor::i8k_get_power_status(void) {
   INIT_REGS;
   int rc;
-  
-  regs.eax = I8K_SMM_POWER_STATUS;
+/*
+  regs.eax = I8K_SMM_GET_POWER_TYPE;
+  i8k_smm(&regs);
+  InfoLog("Got power type=%d", (regs.eax & 0xff));
+*/
+  regs.eax = I8K_SMM_GET_POWER_STATUS;
   if ((rc=i8k_smm(&regs)) < 0) {
     WarningLog("No power status");
     return rc;
   }
-  
+  InfoLog("Got power status=%d", (regs.eax & 0xff));
   return regs.eax & 0xff; // 0 = No Batt, 3 = No AC, 1 = Charging, 5 = Full.
 }
 
@@ -230,17 +282,7 @@ int SMIMonitor::i8k_get_fan_speed(int fan) {
   
   return (regs.eax & 0xffff) * I8K_FAN_MULT;
 }
-/*
-int SMIMonitor::i8k_get_fan0_speed(void)
-{
-  return i8k_get_fan_speed(I8K_FAN_PRIMARY);
-}
 
-int SMIMonitor::i8k_get_fan1_speed(void)
-{
-  return i8k_get_fan_speed(I8K_FAN_SECONDARY);
-}
-*/
 /*
  * Read the fan status.
  */
@@ -256,18 +298,6 @@ int SMIMonitor::i8k_get_fan_status(int fan) {
   
   return (regs.eax & 0xff);
 }
-/*
-int SMIMonitor::i8k_get_fan0_status(void)
-{
-  return i8k_get_fan_status(I8K_FAN_PRIMARY);
-}
-
-int SMIMonitor::i8k_get_fan1_status(void)
-{
-  return i8k_get_fan_status(I8K_FAN_SECONDARY);
-}
-*/
-
 
 IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
   if (super::probe(provider, score) != this) { return 0; }
@@ -278,8 +308,31 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
   }
 
   InfoLog("Based on I8kfan project adopted to HWSensors by Slice 2014");
-  InfoLog("Dell BIOS version=%x", i8k_get_bios_version());
-  	
+//  InfoLog("Dell BIOS version=%x", i8k_get_bios_version());
+/*  InfoLog("Dump SMI ------------");
+  INIT_REGS;
+  int rc;
+
+  regs.eax = I8K_SMM_GET_FAN;
+  rc=i8k_smm(&regs);
+  InfoLog("GET_FAN: rc=0x%x eax=0x%x", rc, regs.eax);
+  regs.eax = I8K_SMM_POWER_STATUS;
+  rc=i8k_smm(&regs);
+  InfoLog("POWER_STATUS: rc=0x%x eax=0x%x", rc, regs.eax);
+  regs.eax = I8K_SMM_GET_SPEED;
+  rc=i8k_smm(&regs);
+  InfoLog("GET_SPEED: rc=0x%x eax=0x%x", rc, regs.eax);
+  regs.eax = I8K_SMM_GET_FAN_TYPE;
+  rc=i8k_smm(&regs);
+  InfoLog("GET_FAN_TYPE: rc=0x%x eax=0x%x", rc, regs.eax);
+  regs.eax = I8K_SMM_GET_NOM_SPEED;
+  rc=i8k_smm(&regs);
+  InfoLog("GET_NOM_SPEED: rc=0x%x eax=0x%x", rc, regs.eax);
+  regs.eax = I8K_SMM_GET_TEMP;
+  rc=i8k_smm(&regs);
+  InfoLog("GET_TEMP: rc=0x%x eax=0x%x", rc, regs.eax);
+  i8k_get_power_status();
+*/
 	return this;
 }
 
@@ -298,7 +351,7 @@ bool SMIMonitor::start(IOService * provider) {
   //Here is Fan in ACPI
   OSArray* fanNames = OSDynamicCast(OSArray, getProperty("FanNames"));
   
-  for (int i=0; i<3; i++) {
+  for (int i=0; i<1; i++) {  //no, laptop has one fan
     snprintf(key, 5, "FAN%X", i);
     
     OSString* name = NULL;
@@ -418,7 +471,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
         } else if (key->getChar(0) == 'T') {
           val = i8k_get_cpu_temp();
         }
-        
+      
         bcopy(&val, data, 2);
         return kIOReturnSuccess;
       }

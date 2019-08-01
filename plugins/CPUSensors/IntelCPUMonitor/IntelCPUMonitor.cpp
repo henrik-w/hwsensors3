@@ -69,7 +69,7 @@ inline void IntelWaitForSts(void) {
 }
 
 void UCState(__unused void * magic) {
-  UInt32 i = cpu_number();
+  volatile UInt32 i = cpu_number();
   if (i < MaxCpuCount) {
     initPMCCounters(i);
     lastUCC[i]=UCC[i];
@@ -80,7 +80,7 @@ void UCState(__unused void * magic) {
 }
 
 void IntelState(__unused void * magic) {
-  UInt32 i = cpu_number();
+  volatile UInt32 i = cpu_number();
   if (i < MaxCpuCount) {
     UInt64 msr = rdmsr64(MSR_IA32_PERF_STS);
     GlobalState[i].Control = msr & 0xFFFF;
@@ -89,9 +89,9 @@ void IntelState(__unused void * magic) {
 }
 
 void IntelThermal(__unused void * magic) {
-	UInt32 i = cpu_number();
+	volatile UInt32 i = cpu_number();
 	if (i < MaxCpuCount) {
-		UInt64 msr = rdmsr64(MSR_IA32_THERM_STATUS);
+    UInt64 msr = rdmsr64(MSR_IA32_THERM_STATUS);
  //   UInt64 E2 = rdmsr64(0xE2);  //Check for E2 lock
 		if (msr & 0x80000000) {
 			GlobalThermalValue[i] = (msr >> 16) & 0x7F;
@@ -106,7 +106,7 @@ void IntelThermal(__unused void * magic) {
 }
 
 void IntelState2(__unused void * magic) {
-	UInt32 i = cpu_number() >> 1;
+	volatile UInt32 i = cpu_number() >> 1;
 	if (i < MaxCpuCount) {
 		UInt64 msr = rdmsr64(MSR_IA32_PERF_STS);
 		GlobalState[i].Control = msr & 0xFFFF;
@@ -115,7 +115,7 @@ void IntelState2(__unused void * magic) {
 }
 
 void IntelThermal2(__unused void * magic) {
-	UInt32 i = cpu_number() >> 1;
+	volatile UInt32 i = cpu_number() >> 1;
 	if (i < MaxCpuCount) {
 		UInt64 msr = rdmsr64(MSR_IA32_THERM_STATUS);
 		if (msr & 0x80000000) {
@@ -155,7 +155,7 @@ IOService* IntelCPUMonitor::probe(IOService *provider, SInt32 *score) {
   if (super::probe(provider, score) != this) { return 0; }
   
   InfoLog("Based on code by mercurysquad, superhai (C)2008. Turbostates measurement added by Navi");
-  InfoLog("at probe 0xE2 = 0x%llx\n",  rdmsr64(0xE2));
+//  InfoLog("at probe 0xE2 = 0x%llx\n",  rdmsr64(0xE2));
   
   cpuid_update_generic_info();
   
@@ -605,7 +605,7 @@ IOReturn IntelCPUMonitor::callPlatformFunction(const OSSymbol *functionName,
                                                void *param2,
                                                void *param3,
                                                void *param4) {
-	UInt32 magic = 0;
+	UInt64 magic = 0;
 	if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
 		const char* name = (const char*)param1;
 		void * data = param2;

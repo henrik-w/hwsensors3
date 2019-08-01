@@ -19,7 +19,7 @@
 #include <i386/proc_reg.h>
 #include <string.h>
 
-#include "cpuid.h"
+#include "../../../utils/cpuid.h"
 
 #define MSR_IA32_THERM_STATUS		    0x019C
 #define MSR_IA32_PERF_STATUS		    0x0198;
