@@ -35,8 +35,12 @@
 #define I8K_FAN_MULT            30
 #define I8K_MAX_TEMP            127
 
-#define I8K_FAN_PRIMARY         0
-#define I8K_FAN_SECONDARY       1
+#define I8K_FAN_PROCESSOR       0
+#define I8K_FAN_SYSTEM          1
+#define I8K_FAN_GPU             2
+#define I8K_FAN_PSU             3
+#define I8K_FAN_CHIPSET         4
+
 #define I8K_FAN_OFF             0
 #define I8K_FAN_LOW             1
 #define I8K_FAN_HIGH            2
@@ -97,28 +101,25 @@ private:
 	bool				addSensor(const char* key, const char* type, unsigned int size);
 	bool				addTachometer(int index, const char* caption);
   
- // int i8k_smm(SMMRegisters *regs);
-  int i8k_get_bios_version(void);
+  int  i8k_smm(SMMRegisters *regs);
+  int  i8k_get_bios_version(void);
   bool i8k_get_dell_sig_aux(int fn);
   bool i8k_get_dell_signature(void);
-  int i8k_get_cpu_temp(void);
-  int i8k_get_power_status(void);
-  int i8k_get_fan_speed(int fan);
-//  int i8k_get_fan0_speed(void);
-//  int i8k_get_fan1_speed(void);
-  int i8k_get_fan_status(int fan);
-//  int i8k_get_fan0_status(void);
-//  int i8k_get_fan1_status(void);
-  
+  int  i8k_get_temp(int sensor);
+  int  i8k_get_power_status(void);
+  int  i8k_get_fan_speed(int fan);
+  int  i8k_get_fan_status(int fan);
+  int  i8k_get_fan_nominal_speed(int fan, int speed);
+  int  i8k_set_fan(int fan, int speed);
 	
 public:
-	virtual IOService*	probe(IOService *provider, SInt32 *score);
+  virtual IOService*	probe(IOService *provider, SInt32 *score);
   virtual bool		start(IOService *provider);
-	virtual bool		init(OSDictionary *properties=0);
-	virtual void		free(void);
-	virtual void		stop(IOService *provider);
+  virtual bool		init(OSDictionary *properties=0);
+  virtual void		free(void);
+  virtual void		stop(IOService *provider);
 	
-	virtual IOReturn	callPlatformFunction(const OSSymbol *functionName,
+  virtual IOReturn	callPlatformFunction(const OSSymbol *functionName,
                                          bool waitForFunction,
                                          void *param1,
                                          void *param2,

@@ -52,14 +52,14 @@ bool SMIMonitor::addTachometer(int index, const char* id) {
 		
 		if (addSensor(key, TYPE_FPE2, 2)) {
 			if (id) {
-        FanTypeDescStruct fds;
+				FanTypeDescStruct fds;
 				snprintf(key, 5, KEY_FORMAT_FAN_ID, length);
-        fds.type = FAN_PWM_TACH;
-        fds.ui8Zone = 1;
-        fds.location = LEFT_LOWER_FRONT;
-        strncpy(fds.strFunction, id, DIAG_FUNCTION_STR_LEN);
+				fds.type = FAN_PWM_TACH;
+				fds.ui8Zone = 1;
+				fds.location = LEFT_LOWER_FRONT;
+				strncpy(fds.strFunction, id, DIAG_FUNCTION_STR_LEN);
         
-        if (kIOReturnSuccess != fakeSMC->callPlatformFunction(kFakeSMCAddKeyValue,
+				if (kIOReturnSuccess != fakeSMC->callPlatformFunction(kFakeSMCAddKeyValue,
                                                               false,
                                                               (void *)key,
                                                               (void *)TYPE_FDESC,
@@ -67,7 +67,7 @@ bool SMIMonitor::addTachometer(int index, const char* id) {
                                                               (void *)&fds)) {
           
 					WarningLog("error adding tachometer id value");
-        }
+				}
 			}
 			
 			length++;
@@ -79,7 +79,7 @@ bool SMIMonitor::addTachometer(int index, const char* id) {
                                                             (void *)&length,
                                                             0)) {
 				WarningLog("error updating FNum value");
-      }
+			}
 			return true;
 		}
   } else {
@@ -118,7 +118,7 @@ int smm(SMMRegisters *regs)
 {
   
   int rc;
-  int eax = regs->eax;
+  int eax = regs->eax;  //input value
 
 #if __LP64__
   asm volatile("pushq %%rax\n\t"
@@ -189,7 +189,7 @@ void read_smi(void * magic) {
   } else gRc = -1;
 }
 
-int i8k_smm(SMMRegisters *regs)
+int SMIMonitor::i8k_smm(SMMRegisters *regs)
 {
 //  size_t magic = 0;
 //  globalRegs = regs;
@@ -212,17 +212,29 @@ int SMIMonitor::i8k_get_bios_version(void) {
 /*
  * Read the CPU temperature in Celcius.
  */
-int SMIMonitor::i8k_get_cpu_temp(void) {
+int SMIMonitor::i8k_get_temp(int sensor) {
   INIT_REGS;
   int rc;
   int temp;
   
   regs.eax = I8K_SMM_GET_TEMP;
+  regs.ebx = sensor & 0xFF;
   if ((rc=i8k_smm(&regs)) < 0) {
     return rc;
-	}
+  }
 	
   temp = regs.eax & 0xff;
+  if (temp == 0x99) {
+    IOSleep(100);
+	regs.eax = I8K_SMM_GET_TEMP;
+    regs.ebx = sensor & 0xFF;
+    if ((rc=i8k_smm(&regs)) < 0) {
+      return rc;
+    }
+
+    temp = regs.eax & 0xff;
+  }
+
   return temp;
 }
 
@@ -242,8 +254,8 @@ bool SMIMonitor::i8k_get_dell_sig_aux(int fn) {
 
 bool SMIMonitor::i8k_get_dell_signature(void) {
   
-  return (i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG1)); // &&
-        //  i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG2));
+  return (i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG1) ||
+          i8k_get_dell_sig_aux(I8K_SMM_GET_DELL_SIG2));
 }
 
 
@@ -258,7 +270,7 @@ int SMIMonitor::i8k_get_power_status(void) {
   i8k_smm(&regs);
   InfoLog("Got power type=%d", (regs.eax & 0xff));
 */
-  regs.eax = I8K_SMM_GET_POWER_STATUS;
+  regs.eax = I8K_SMM_POWER_STATUS;
   if ((rc=i8k_smm(&regs)) < 0) {
     WarningLog("No power status");
     return rc;
@@ -273,14 +285,15 @@ int SMIMonitor::i8k_get_power_status(void) {
 int SMIMonitor::i8k_get_fan_speed(int fan) {
   INIT_REGS;
   int rc;
+  int speed = 0;
   
   regs.eax = I8K_SMM_GET_SPEED;
   regs.ebx = fan & 0xff;
   if ((rc=i8k_smm(&regs)) < 0) {
     return rc;
   }
-  
-  return (regs.eax & 0xffff) * I8K_FAN_MULT;
+  speed = (regs.eax & 0xffff) * I8K_FAN_MULT;
+  return speed;
 }
 
 /*
@@ -298,6 +311,32 @@ int SMIMonitor::i8k_get_fan_status(int fan) {
   
   return (regs.eax & 0xff);
 }
+
+/*
+ * Read the fan nominal rpm for specific fan speed.
+ */
+int SMIMonitor::i8k_get_fan_nominal_speed(int fan, int speed)
+{
+	INIT_REGS;
+	regs.eax = I8K_SMM_GET_NOM_SPEED;
+	regs.ebx = (fan & 0xff) | (speed << 8);
+	return i8k_smm(&regs) ? 0 : (regs.eax & 0xffff) * I8K_FAN_MULT;
+}
+
+/*
+ * Set the fan speed (off, low, high). Returns the new fan status.
+ */
+int SMIMonitor::i8k_set_fan(int fan, int speed)
+{
+	INIT_REGS;
+	regs.eax = I8K_SMM_SET_FAN;
+
+	speed = (speed < 0) ? 0 : ((speed > i8k_fan_max) ? i8k_fan_max : speed);
+	regs.ebx = (fan & 0xff) | (speed << 8);
+
+	return i8k_smm(&regs) ? 0 : i8k_get_fan_status(fan);
+}
+
 
 IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
   if (super::probe(provider, score) != this) { return 0; }
@@ -318,28 +357,28 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
   InfoLog("POWER_STATUS: rc=0x%x eax=0x%x", rc, regs.eax);
 
   for (int i=0; i<6; i++) {
-    memset(&regs, 0, 24);
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_GET_FAN;
     regs.ebx = i;
     rc=i8k_smm(&regs);
     InfoLog("GET_FAN %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
-    memset(&regs, 0, 24);
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_FN_STATUS;
     regs.ebx = i;
     rc=i8k_smm(&regs);
     InfoLog("FN_STATUS %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
     if (rc < 0) continue;
-    memset(&regs, 0, 24);
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_GET_FAN_TYPE;
     regs.ebx = i;
     rc=i8k_smm(&regs);
     InfoLog("GET_FAN_TYPE: rc=0x%x eax=0x%x", rc, regs.eax);
-    memset(&regs, 0, 24);
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_GET_SPEED;
     regs.ebx = i;
     rc=i8k_smm(&regs);
     InfoLog("GET_SPEED: rc=0x%x eax=0x%x", rc, regs.eax);
-    memset(&regs, 0, 24);
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_GET_NOM_SPEED;
     regs.ebx = i;
     rc=i8k_smm(&regs);
@@ -347,14 +386,15 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
   }
 
   for (int i=0; i<6; i++) {
-    memset(&regs, 0, 24);
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_GET_TEMP;
     regs.ebx = i;
     rc=i8k_smm(&regs);
     InfoLog("GET_TEMP %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
   }
+  */
   i8k_get_power_status();
-*/
+
 	return this;
 }
 
@@ -373,16 +413,17 @@ bool SMIMonitor::start(IOService * provider)
   
   //Here are Fans in info.plist
   OSArray* fanNames = OSDynamicCast(OSArray, getProperty("FanNames"));
-  
-  for (int i=0; i<6; i++) {  //no, laptop has one fan
+  int fanNum =0;
+  for (int i=0; i<6; i++) {  
 
-    memset(&regs, 0, 24);
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_GET_FAN;
     regs.ebx = i;
     rc=i8k_smm(&regs);
-    if (rc < 0) continue;
+    if (rc < 0) continue; //laptop has one fan, but desktop 0 and 2; continue search
 
-    snprintf(key, 5, "FAN%X", i);
+    fanNum++;
+	snprintf(key, 5, "FAN%X", i);
     
     OSString* name = NULL;
     
@@ -394,27 +435,30 @@ bool SMIMonitor::start(IOService * provider)
       WarningLog("Can't add tachometer sensor, key %s", key);
     }
   }
+//  addSensor(KEY_CPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);
 
-  memset(&regs, 0, 24);
+  memset(&regs, 0, sizeof(regs));
   regs.eax = I8K_SMM_GET_TEMP;
   regs.ebx = 0;
   if (!i8k_smm(&regs)) addSensor(KEY_CPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TC0P
-  memset(&regs, 0, 24);
+  memset(&regs, 0, sizeof(regs));
   regs.eax = I8K_SMM_GET_TEMP;
   regs.ebx = 1;
-  if (!i8k_smm(&regs))   addSensor(KEY_FORMAT_GPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TG0P
-  memset(&regs, 0, 24);
-  regs.eax = I8K_SMM_GET_TEMP;
-  regs.ebx = 1;
-  if (!i8k_smm(&regs))   addSensor(KEY_DIMM_TEMPERATURE, TYPE_SP78, 2);  //Tm0P
-  memset(&regs, 0, 24);
+  if (!i8k_smm(&regs))   addSensor(KEY_GPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TG0P
+  memset(&regs, 0, sizeof(regs));
   regs.eax = I8K_SMM_GET_TEMP;
   regs.ebx = 2;
-  if (!i8k_smm(&regs))   addSensor(KEY_NORTHBRIDGE_TEMPERATURE, TYPE_SP78, 2);  //TN0P
-  memset(&regs, 0, 24);
+  if (!i8k_smm(&regs))   addSensor(KEY_DIMM_TEMPERATURE, TYPE_SP78, 2);  //Tm0P
+  memset(&regs, 0, sizeof(regs));
   regs.eax = I8K_SMM_GET_TEMP;
   regs.ebx = 3;
-  if (!i8k_smm(&regs))   addSensor(KEY_AMBIENT_TEMPERATURE, TYPE_SP78, 2);  //TA0P  registerService(0);
+  if (!i8k_smm(&regs))   addSensor(KEY_NORTHBRIDGE_TEMPERATURE, TYPE_SP78, 2);  //TN0P
+  memset(&regs, 0, sizeof(regs));
+  regs.eax = I8K_SMM_GET_TEMP;
+  regs.ebx = 4;
+  if (!i8k_smm(&regs))   addSensor(KEY_AMBIENT_TEMPERATURE, TYPE_SP78, 2);  //TA0P
+
+  registerService(0);
   
   return true;
 }
@@ -516,9 +560,19 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
             value = i8k_get_fan_speed(fan);
             val = encode_fpe2(value);
           }
-        } else if (key->getChar(0) == 'T') {
-          val = i8k_get_cpu_temp();
-        }
+        } else if ((key->getChar(0) == 'T') && (key->getChar(2) == '0') && (key->getChar(3) == 'P')) {
+			if (key->getChar(1) == 'C') {
+				val = i8k_get_temp(0);
+			} else if (key->getChar(1) == 'G') {
+				val = i8k_get_temp(1);
+			} else if (key->getChar(1) == 'm') {
+				val = i8k_get_temp(2);
+			} else if (key->getChar(1) == 'N') {
+				val = i8k_get_temp(3);
+			} else if (key->getChar(1) == 'A') {
+				val = i8k_get_temp(4);
+			}
+		}
       
         bcopy(&val, data, 2);
         return kIOReturnSuccess;
