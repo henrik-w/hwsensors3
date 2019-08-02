@@ -30,8 +30,12 @@
 			<integer>10</integer>
 			<key>FanNames</key>
 			<array>
-				<string>System Fan</string>
 				<string>Processor Fan</string>
+				<string>System Fan</string>
+				<string>GPU Fan</string>
+				<string>PSU Fan</string>
+				<string>Chipset Fan</string>
+				<string>Other Fan</string>
 			</array>
 			<key>IOClass</key>
 			<string>SMIMonitor</string>

@@ -313,45 +313,75 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
   INIT_REGS;
   int rc;
 
-  regs.eax = I8K_SMM_GET_FAN;
-  rc=i8k_smm(&regs);
-  InfoLog("GET_FAN: rc=0x%x eax=0x%x", rc, regs.eax);
   regs.eax = I8K_SMM_POWER_STATUS;
   rc=i8k_smm(&regs);
   InfoLog("POWER_STATUS: rc=0x%x eax=0x%x", rc, regs.eax);
-  regs.eax = I8K_SMM_GET_SPEED;
-  rc=i8k_smm(&regs);
-  InfoLog("GET_SPEED: rc=0x%x eax=0x%x", rc, regs.eax);
-  regs.eax = I8K_SMM_GET_FAN_TYPE;
-  rc=i8k_smm(&regs);
-  InfoLog("GET_FAN_TYPE: rc=0x%x eax=0x%x", rc, regs.eax);
-  regs.eax = I8K_SMM_GET_NOM_SPEED;
-  rc=i8k_smm(&regs);
-  InfoLog("GET_NOM_SPEED: rc=0x%x eax=0x%x", rc, regs.eax);
-  regs.eax = I8K_SMM_GET_TEMP;
-  rc=i8k_smm(&regs);
-  InfoLog("GET_TEMP: rc=0x%x eax=0x%x", rc, regs.eax);
+
+  for (int i=0; i<6; i++) {
+    memset(&regs, 0, 24);
+    regs.eax = I8K_SMM_GET_FAN;
+    regs.ebx = i;
+    rc=i8k_smm(&regs);
+    InfoLog("GET_FAN %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
+    memset(&regs, 0, 24);
+    regs.eax = I8K_SMM_FN_STATUS;
+    regs.ebx = i;
+    rc=i8k_smm(&regs);
+    InfoLog("FN_STATUS %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
+    if (rc < 0) continue;
+    memset(&regs, 0, 24);
+    regs.eax = I8K_SMM_GET_FAN_TYPE;
+    regs.ebx = i;
+    rc=i8k_smm(&regs);
+    InfoLog("GET_FAN_TYPE: rc=0x%x eax=0x%x", rc, regs.eax);
+    memset(&regs, 0, 24);
+    regs.eax = I8K_SMM_GET_SPEED;
+    regs.ebx = i;
+    rc=i8k_smm(&regs);
+    InfoLog("GET_SPEED: rc=0x%x eax=0x%x", rc, regs.eax);
+    memset(&regs, 0, 24);
+    regs.eax = I8K_SMM_GET_NOM_SPEED;
+    regs.ebx = i;
+    rc=i8k_smm(&regs);
+    InfoLog("GET_NOM_SPEED: rc=0x%x eax=0x%x", rc, regs.eax);
+  }
+
+  for (int i=0; i<6; i++) {
+    memset(&regs, 0, 24);
+    regs.eax = I8K_SMM_GET_TEMP;
+    regs.ebx = i;
+    rc=i8k_smm(&regs);
+    InfoLog("GET_TEMP %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
+  }
   i8k_get_power_status();
 */
 	return this;
 }
 
-bool SMIMonitor::start(IOService * provider) {
+bool SMIMonitor::start(IOService * provider)
+{
+  INIT_REGS;
+  int rc = 0;
   if (!provider || !super::start(provider)) { return false; }
   
   if (!(fakeSMC = waitForService(serviceMatching(kFakeSMCDeviceService)))) {
     WarningLog("Can't locate fake SMC device, kext will not load");
     return false;
   }
-  
-  //  acpiDevice = (IOACPIPlatformDevice *)provider;
-  
+
   char key[5];
   
-  //Here is Fan in ACPI
+  //Here are Fans in info.plist
   OSArray* fanNames = OSDynamicCast(OSArray, getProperty("FanNames"));
   
-  for (int i=0; i<1; i++) {  //no, laptop has one fan
+  for (int i=0; i<6; i++) {  //no, laptop has one fan
+
+    memset(&regs, 0, 24);
+    regs.eax = I8K_SMM_GET_FAN;
+    regs.ebx = i;
+    rc=i8k_smm(&regs);
+    if (rc < 0) continue;
+
     snprintf(key, 5, "FAN%X", i);
     
     OSString* name = NULL;
@@ -364,9 +394,27 @@ bool SMIMonitor::start(IOService * provider) {
       WarningLog("Can't add tachometer sensor, key %s", key);
     }
   }
-  
-  addSensor(KEY_CPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TC0P
-  registerService(0);
+
+  memset(&regs, 0, 24);
+  regs.eax = I8K_SMM_GET_TEMP;
+  regs.ebx = 0;
+  if (!i8k_smm(&regs)) addSensor(KEY_CPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TC0P
+  memset(&regs, 0, 24);
+  regs.eax = I8K_SMM_GET_TEMP;
+  regs.ebx = 1;
+  if (!i8k_smm(&regs))   addSensor(KEY_FORMAT_GPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TG0P
+  memset(&regs, 0, 24);
+  regs.eax = I8K_SMM_GET_TEMP;
+  regs.ebx = 1;
+  if (!i8k_smm(&regs))   addSensor(KEY_DIMM_TEMPERATURE, TYPE_SP78, 2);  //Tm0P
+  memset(&regs, 0, 24);
+  regs.eax = I8K_SMM_GET_TEMP;
+  regs.ebx = 2;
+  if (!i8k_smm(&regs))   addSensor(KEY_NORTHBRIDGE_TEMPERATURE, TYPE_SP78, 2);  //TN0P
+  memset(&regs, 0, 24);
+  regs.eax = I8K_SMM_GET_TEMP;
+  regs.ebx = 3;
+  if (!i8k_smm(&regs))   addSensor(KEY_AMBIENT_TEMPERATURE, TYPE_SP78, 2);  //TA0P  registerService(0);
   
   return true;
 }
