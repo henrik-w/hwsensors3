@@ -374,8 +374,8 @@ IOReturn ACPIMonitor::callPlatformFunction(const OSSymbol *functionName,
 	UInt16 val = 0;
 	
 	if (functionName->isEqualTo(kFakeSMCSetValueCallback)) {
-		if (name && data) {
-      key = OSDynamicCast(OSString, sensors->getObject(name));
+            if (name && data) {
+                key = OSDynamicCast(OSString, sensors->getObject(name));
 			if (key) {
 				InfoLog("Writing key=%s by method=%s value=%x", name, key->getCStringNoCopy(), *(UInt16*)data);
 				OSObject * params[1];
@@ -405,37 +405,36 @@ IOReturn ACPIMonitor::callPlatformFunction(const OSSymbol *functionName,
 	if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
 		
 		if (name && data) {
-      key = OSDynamicCast(OSString, sensors->getObject(name));
-			if (key) {
-				if (kIOReturnSuccess == acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value)) {
-					val = 0;
-					
-					if (key->getChar(0) == 'V') {
-            if  (key->getChar(3) <= '2' || key->getChar(3) == 'R')  {
-              val = encode_sp4b(value); //VSN 0 1 2 R
-            } else { 
-              val = encode_fp2e(value);
-            }
-					} else if (key->getChar(0) == 'F') {
-						if (key->getChar(1) == 'A') {
-							val = encode_fpe2(value);
-						} else {
-							if (key->getChar(1) == 'T') {
-								val = value?encode_fpe2(MEGA10 / value):0;
-							} else {
-                val = value;
-              }
-            }
-					} else {
-            val = value;
-          }
+                    key = OSDynamicCast(OSString, sensors->getObject(name));
+                    if (key) {
+                        if (kIOReturnSuccess == acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value)) {
+                            val = 0;
+                            if (key->getChar(0) == 'V') {
+                                if  (key->getChar(3) <= '2' || key->getChar(3) == 'R')  {
+                                    val = encode_sp4b(value); //VSN 0 1 2 R
+                                } else {
+                                    val = encode_fp2e(value);
+                                }
+                            } else if (key->getChar(0) == 'F') {
+                                if (key->getChar(1) == 'A') {
+                                    val = encode_fpe2(value);
+                                } else {
+                                    if (key->getChar(1) == 'T') {
+                                        val = value?encode_fpe2(MEGA10 / value):0;
+                                    } else {
+                                        val = value;
+                                    }
+                                }
+                            } else {
+                                val = value;
+                            }
           
-          bcopy(&val, data, size);
-          return kIOReturnSuccess;
-				}
-			}
+                            bcopy(&val, data, size);
+                            return kIOReturnSuccess;
+                        }
+                    }
 			
-			return kIOReturnBadArgument;
+                    return kIOReturnBadArgument;
 		}
 		
 		//DebugLog("bad argument key name or data");
