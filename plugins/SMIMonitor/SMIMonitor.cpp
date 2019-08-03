@@ -10,7 +10,9 @@
 #include "FakeSMC.h"
 #include "utils.h"
 
+#ifndef Debug
 #define Debug FALSE
+#endif
 
 #define LogPrefix "SMIMonitor: "
 #define DebugLog(string, args...)	do { if (Debug) { IOLog (LogPrefix "[Debug] " string "\n", ## args); } } while(0)
@@ -331,10 +333,10 @@ int SMIMonitor::i8k_set_fan(int fan, int speed)
 	INIT_REGS;
 	regs.eax = I8K_SMM_SET_FAN;
 
-	speed = (speed < 0) ? 0 : ((speed > i8k_fan_max) ? i8k_fan_max : speed);
+	speed = (speed < 0) ? 0 : ((speed > I8K_FAN_MAX) ? I8K_FAN_MAX : speed);
 	regs.ebx = (fan & 0xff) | (speed << 8);
 
-	return i8k_smm(&regs) ? 0 : i8k_get_fan_status(fan);
+	return i8k_smm(&regs) ? -1 : i8k_get_fan_status(fan);
 }
 
 
@@ -348,7 +350,7 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
 
   InfoLog("Based on I8kfan project adopted to HWSensors by Slice 2014");
 //  InfoLog("Dell BIOS version=%x", i8k_get_bios_version());
-/*  InfoLog("Dump SMI ------------");
+  InfoLog("Dump SMI ------------");
   INIT_REGS;
   int rc;
 
@@ -363,12 +365,13 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
     rc=i8k_smm(&regs);
     InfoLog("GET_FAN %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
     memset(&regs, 0, sizeof(regs));
-    regs.eax = I8K_SMM_FN_STATUS;
+    if (rc < 0) continue;
+ /*   regs.eax = I8K_SMM_FN_STATUS;
     regs.ebx = i;
     rc=i8k_smm(&regs);
     InfoLog("FN_STATUS %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
     if (rc < 0) continue;
-    memset(&regs, 0, sizeof(regs));
+    memset(&regs, 0, sizeof(regs));  */
     regs.eax = I8K_SMM_GET_FAN_TYPE;
     regs.ebx = i;
     rc=i8k_smm(&regs);
@@ -390,9 +393,10 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
     regs.eax = I8K_SMM_GET_TEMP;
     regs.ebx = i;
     rc=i8k_smm(&regs);
+    if (rc < 0) continue;
     InfoLog("GET_TEMP %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
   }
-  */
+
   i8k_get_power_status();
 
 	return this;
@@ -423,7 +427,7 @@ bool SMIMonitor::start(IOService * provider)
     if (rc < 0) continue; //laptop has one fan, but desktop 0 and 2; continue search
 
     fanNum++;
-	snprintf(key, 5, "FAN%X", i);
+    snprintf(key, 5, "FAN%X", i);
     
     OSString* name = NULL;
     
@@ -467,11 +471,9 @@ bool SMIMonitor::init(OSDictionary *properties) {
   if (!super::init(properties)) {
     return false;
   }
-  
   if (!(sensors = OSDictionary::withCapacity(0))) {
     return false;
   }
-  
   return true;
 }
 
@@ -505,7 +507,6 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
   const char* name = (const char*)param1;
   void * data = param2;
   //  UInt64 size = (UInt64)param3;
-  OSString* key;
 #if __LP64__
   UInt64 value;
 #else
@@ -515,76 +516,50 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
   
   if (functionName->isEqualTo(kFakeSMCSetValueCallback)) {
     if (name && data) {
-      key = OSDynamicCast(OSString, sensors->getObject(name));
-      if (key) {
-        InfoLog("Writing key=%s by method=%s value=%x", name, key->getCStringNoCopy(), *(UInt16*)data);
-        OSObject * params[1];
-        if (key->getChar(0) == 'F') {
-          val = decode_fpe2(*(UInt16*)data);
-        } else {
-          val = *(UInt16*)data;
-        }
-        params[0] = OSDynamicCast(OSObject, OSNumber::withNumber((unsigned long long)val, 32));
-        return kIOReturnBadArgument; //acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value, params, 1);
-        
-        /*
-         virtual IOReturn evaluateInteger( const OSSymbol * objectName,
-         UInt32 *         resultInt32,
-         OSObject *       params[]   = 0,
-         IOItemCount      paramCount = 0,
-         IOOptionBits     options    = 0 );
-         flags_num = OSNumber::withNumber((unsigned long long)flags, 32);
-         */
-        
+      InfoLog("Writing key=%s value=%x", name, *(UInt16*)data);
+      //OSObject * params[1];
+      if (name[0] == 'F') {
+        val = decode_fpe2(*(UInt16*)data);
+      } else {
+        val = *(UInt16*)data;
       }
-      return kIOReturnBadArgument;
+      int fan = (int)(name[1] - '0');
+      int ret = i8k_set_fan(fan, val);
+      return (ret == 0) ? kIOReturnSuccess: kIOReturnBadArgument;
     }
     return kIOReturnBadArgument;
-    
   }
-  
-  //#define KEY_FORMAT_FAN_ID                       "F%XID"
-  //#define KEY_FORMAT_FAN_SPEED                    "F%XAc"
-  //#define KEY_CPU_PROXIMITY_TEMPERATURE           "TC0P"
-  
+
   if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
-    
     if (name && data) {
-      key = OSDynamicCast(OSString, sensors->getObject(name));
-      if (key) {
-        val = 0;
-        
-        if (key->getChar(0) == 'F') {
-          if ((key->getChar(2) == 'A') && (key->getChar(3) == 'c')) {
-            int fan = (int)(key->getChar(1) - '0');
-            value = i8k_get_fan_speed(fan);
-            val = encode_fpe2(value);
-          }
-        } else if ((key->getChar(0) == 'T') && (key->getChar(2) == '0') && (key->getChar(3) == 'P')) {
-			if (key->getChar(1) == 'C') {
-				val = i8k_get_temp(0);
-			} else if (key->getChar(1) == 'G') {
-				val = i8k_get_temp(1);
-			} else if (key->getChar(1) == 'm') {
-				val = i8k_get_temp(2);
-			} else if (key->getChar(1) == 'N') {
-				val = i8k_get_temp(3);
-			} else if (key->getChar(1) == 'A') {
-				val = i8k_get_temp(4);
-			}
-		}
-      
+      val = 0;
+
+      if (name[0] == 'F') {
+        if ((name[2] == 'A') && (name[3] == 'c')) {
+          int fan = (int)(name[1] - '0');
+          value = i8k_get_fan_speed(fan);
+          val = encode_fpe2(value);
+        }
+      } else if ((name[0] == 'T') && (name[2] == '0') && (name[3] == 'P')) {
+        if (name[1] == 'C') {
+          val = i8k_get_temp(0);
+        } else if (name[1]  == 'G') {
+          val = i8k_get_temp(1);
+        } else if (name[1]  == 'm') {
+          val = i8k_get_temp(2);
+        } else if (name[1]  == 'N') {
+          val = i8k_get_temp(3);
+        } else if (name[1]  == 'A') {
+          val = i8k_get_temp(4);
+        }
         bcopy(&val, data, 2);
         return kIOReturnSuccess;
       }
-      
-      return kIOReturnBadArgument;
+      return kIOReturnBadArgument; //no key or no pointer to data
     }
-    
     //DebugLog("bad argument key name or data");
-    
     return kIOReturnBadArgument;
   }
-  
+
   return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
 }
