@@ -361,32 +361,32 @@ IOReturn ACPIMonitor::callPlatformFunction(const OSSymbol *functionName,
                                            void *param2,
                                            void *param3,
                                            void *param4) {
-	const char* name = (const char*)param1;
-	void * data = param2;
- UInt64 size = (UInt64)param3;
-//callPlatformFunction(kFakeSMCAddKeyHandler, false, (void *)key, (void *)type, (void *)size, (void *)this))
-	OSString* key;
+  const char* name = (const char*)param1;
+  void * data = param2;
+  UInt64 size = (UInt64)param3;
+  //callPlatformFunction(kFakeSMCAddKeyHandler, false, (void *)key, (void *)type, (void *)size, (void *)this))
+  OSString* key;
 #if __LP64__
-	UInt64 value = 0;
+  UInt64 value = 0;
 #else
-	UInt32 value;
+  UInt32 value;
 #endif
-	UInt16 val = 0;
-	
-	if (functionName->isEqualTo(kFakeSMCSetValueCallback)) {
-            if (name && data) {
-                key = OSDynamicCast(OSString, sensors->getObject(name));
-			if (key) {
-				InfoLog("Writing key=%s by method=%s value=%x", name, key->getCStringNoCopy(), *(UInt16*)data);
-				OSObject * params[1];
-				if (key->getChar(0) == 'F') {
-					val = decode_fpe2(*(UInt16*)data);
-				} else {
-					val = *(UInt16*)data;
-				}
-				params[0] = OSDynamicCast(OSObject, OSNumber::withNumber((unsigned long long)val, 32));
-				return acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value, params, 1);
-				
+  UInt16 val = 0;
+
+  if (functionName->isEqualTo(kFakeSMCSetValueCallback)) {
+    if (name && data) {
+      key = OSDynamicCast(OSString, sensors->getObject(name));
+      if (key) {
+        InfoLog("Writing key=%s by method=%s value=%x", name, key->getCStringNoCopy(), *(UInt16*)data);
+        OSObject * params[1];
+        if (key->getChar(0) == 'F') {
+          val = decode_fpe2(*(UInt16*)data);
+        } else {
+          val = *(UInt16*)data;
+        }
+        params[0] = OSDynamicCast(OSObject, OSNumber::withNumber((unsigned long long)val, 32));
+        return acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value, params, 1);
+
         /*
          virtual IOReturn evaluateInteger( const OSSymbol * objectName,
          UInt32 *         resultInt32,
@@ -395,51 +395,48 @@ IOReturn ACPIMonitor::callPlatformFunction(const OSSymbol *functionName,
          IOOptionBits     options    = 0 );
          flags_num = OSNumber::withNumber((unsigned long long)flags, 32);
          */
-				
-			}
-			return kIOReturnBadArgument;
-		}
-		return kIOReturnBadArgument;
-	}
-  
-	if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
-		
-		if (name && data) {
-                    key = OSDynamicCast(OSString, sensors->getObject(name));
-                    if (key) {
-                        if (kIOReturnSuccess == acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value)) {
-                            val = 0;
-                            if (key->getChar(0) == 'V') {
-                                if  (key->getChar(3) <= '2' || key->getChar(3) == 'R')  {
-                                    val = encode_sp4b(value); //VSN 0 1 2 R
-                                } else {
-                                    val = encode_fp2e(value);
-                                }
-                            } else if (key->getChar(0) == 'F') {
-                                if (key->getChar(1) == 'A') {
-                                    val = encode_fpe2(value);
-                                } else {
-                                    if (key->getChar(1) == 'T') {
-                                        val = value?encode_fpe2(MEGA10 / value):0;
-                                    } else {
-                                        val = value;
-                                    }
-                                }
-                            } else {
-                                val = value;
-                            }
-          
-                            bcopy(&val, data, size);
-                            return kIOReturnSuccess;
-                        }
-                    }
-			
-                    return kIOReturnBadArgument;
-		}
-		
-		//DebugLog("bad argument key name or data");
-		return kIOReturnBadArgument;
-	}
-	
-	return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
+
+      }
+      return kIOReturnBadArgument;
+    }
+    return kIOReturnBadArgument;
+  }
+
+  if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
+    if (name && data) {
+      key = OSDynamicCast(OSString, sensors->getObject(name)); //ACPI name
+      if (key) {
+        if (kIOReturnSuccess == acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value)) {
+          val = 0;
+          if (key->getChar(0) == 'V') {
+            if  (key->getChar(3) <= '2' || key->getChar(3) == 'R')  {
+              val = encode_sp4b(value); //VSN 0 1 2 R
+            } else {
+              val = encode_fp2e(value);
+            }
+          } else if (key->getChar(0) == 'F') {
+            if (key->getChar(1) == 'A') {
+              val = encode_fpe2(value);
+            } else {
+              if (key->getChar(1) == 'T') {
+                val = value?encode_fpe2(MEGA10 / value):0;
+              } else {
+                val = value;
+              }
+            }
+          } else {
+            val = value;
+          }
+          bcopy(&val, data, size);
+          return kIOReturnSuccess;
+        }
+      }
+      return kIOReturnBadArgument;
+    }
+
+    //DebugLog("bad argument key name or data");
+    return kIOReturnBadArgument;
+  }
+
+  return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
 }
