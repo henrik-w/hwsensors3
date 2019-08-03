@@ -30,7 +30,7 @@
 			<integer>10</integer>
 			<key>FanNames</key>
 			<array>
-				<string>Processor Fan</string>
+				<string>CPU Fan</string>
 				<string>System Fan</string>
 				<string>GPU Fan</string>
 				<string>PSU Fan</string>

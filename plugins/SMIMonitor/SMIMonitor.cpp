@@ -350,7 +350,7 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
 
   InfoLog("Based on I8kfan project adopted to HWSensors by Slice 2014");
 //  InfoLog("Dell BIOS version=%x", i8k_get_bios_version());
-  InfoLog("Dump SMI ------------");
+/*  InfoLog("Dump SMI ------------");
   INIT_REGS;
   int rc;
 
@@ -366,12 +366,12 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
     InfoLog("GET_FAN %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
     memset(&regs, 0, sizeof(regs));
     if (rc < 0) continue;
- /*   regs.eax = I8K_SMM_FN_STATUS;
+    regs.eax = I8K_SMM_FN_STATUS;
     regs.ebx = i;
     rc=i8k_smm(&regs);
     InfoLog("FN_STATUS %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
     if (rc < 0) continue;
-    memset(&regs, 0, sizeof(regs));  */
+    memset(&regs, 0, sizeof(regs));
     regs.eax = I8K_SMM_GET_FAN_TYPE;
     regs.ebx = i;
     rc=i8k_smm(&regs);
@@ -396,6 +396,7 @@ IOService* SMIMonitor::probe(IOService *provider, SInt32 *score) {
     if (rc < 0) continue;
     InfoLog("GET_TEMP %d: rc=0x%x eax=0x%x", i, rc, regs.eax);
   }
+  */
 
   i8k_get_power_status();
 
@@ -506,7 +507,8 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
                                           void *param4) {
   const char* name = (const char*)param1;
   void * data = param2;
-  //  UInt64 size = (UInt64)param3;
+//  UInt64 size = (UInt64)param3;
+
 #if __LP64__
   UInt64 value;
 #else
@@ -533,12 +535,13 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
   if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
     if (name && data) {
       val = 0;
-
       if (name[0] == 'F') {
         if ((name[2] == 'A') && (name[3] == 'c')) {
           int fan = (int)(name[1] - '0');
           value = i8k_get_fan_speed(fan);
           val = encode_fpe2(value);
+          bcopy(&val, data, 2);
+          return kIOReturnSuccess;
         }
       } else if ((name[0] == 'T') && (name[2] == '0') && (name[3] == 'P')) {
         if (name[1] == 'C') {
@@ -552,7 +555,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
         } else if (name[1]  == 'A') {
           val = i8k_get_temp(4);
         }
-        bcopy(&val, data, 2);
+        bcopy(&val, data, 1);
         return kIOReturnSuccess;
       }
       return kIOReturnBadArgument; //no key or no pointer to data
