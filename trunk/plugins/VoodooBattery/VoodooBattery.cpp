@@ -115,9 +115,23 @@ IOService * VoodooBattery::probe(IOService * provider, SInt32 * score) {
     }
     iterator->release();
     iterator = 0;
-  }
-  
+  } 
   IOLog("Found %u ac adapters\n", AcAdapterCount);
+
+  // look for LID device if any
+  iterator = IORegistryIterator::iterateOver(gIOACPIPlane, kIORegistryIterateRecursively);
+  pnp = OSString::withCString(PnpDeviceIdLid);
+  if (iterator) {
+	  while ((entry = iterator->getNextObject())) {
+		  if (entry->compareName(pnp)) {
+			  DebugLog("Found Lid device");
+			  LidDevice = OSDynamicCast(IOACPIPlatformDevice, entry);
+			  break;
+		  }
+	  }
+	  iterator->release();
+	  iterator = 0;
+  }
   
   return this;
 }
@@ -218,8 +232,13 @@ bool VoodooBattery::start(IOService * provider) {
     addSensor(key, TYPE_UI8, 1, 0);
     snprintf(key, 5, KEY_ADAPTER_AMPERAGE);
     addSensor(key, TYPE_UI16, 2, 0);
-
   }
+  if (attach(LidDevice)
+  {
+	  snprintf(key, 5, KEY_LID_CLOSED);
+		  addSensor(key, TYPE_FLAG, 1, 0);
+  }
+
 
 	return true;
 }
@@ -283,8 +302,8 @@ void VoodooBattery::Update(void) {
 	}
 	BatteriesAreFull = true;
 	for (UInt8 i = 0; i < BatteryCount; i++) {
-    if (BatteryConnected[i]) { BatteryStatus(i); }
-    if (!AcAdapterCount) { ExternalPowerConnected |= CalculatedAcAdapterConnected[i]; }
+      if (BatteryConnected[i]) { BatteryStatus(i); }
+      if (!AcAdapterCount) { ExternalPowerConnected |= CalculatedAcAdapterConnected[i]; }
 	}
   if (!AcAdapterCount) { ExternalPower(ExternalPowerConnected); }
 }
@@ -717,14 +736,24 @@ IOReturn VoodooBattery::callPlatformFunction(const OSSymbol *functionName,
             }
           }
         }
-
+	  }
+	  else if ((name[0] == 'M') && (name[1] == 'S') &&
+		  (name[2] == 'L') && (name[3] == 'D')) {
+		  if (!LidDevice) {
+			  return kIOReturnBadArgument;
+		  }
+		  UInt32 acpi = 0;
+		  LidDevice->evaluateInteger(LidStatus, &acpi);
+		  value = acpi ? 0 : 1;
       } else if ((name[0] == 'B') && (name[1] == 'A') &&
                  (name[2] == 'T') && (name[3] == 'P')) {
         if (firstTime) {
           value = 1;
           firstTime = false;
-        } else
-          value = ExternalPowerConnected?0:1;
+		}
+		else {
+			value = ExternalPowerConnected ? 0 : 1;
+		}
       } else if ((name[0] == 'B') && (name[1] == 'B') &&
                  (name[2] == 'I') && (name[3] == 'N')) {
         value = BatteriesConnected;

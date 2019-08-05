@@ -34,13 +34,16 @@ const UInt32	StartLocation = kIOPMPSLocationLeft;
 
 // String constants
 
-const char *	PnpDeviceIdBattery		    = "PNP0C0A";
-const char *	PnpDeviceIdAcAdapter	    = "ACPI0003";
-const char *	AcpiStatus				        = "_STA";
-const char *	AcpiPowerSource			      = "_PSR";
-const char *	AcpiBatteryInformation	  = "_BIF";
-const char *	AcpiBatteryInformationEx  = "_BIX";
-const char *	AcpiBatteryStatus		      = "_BST";
+const char *	PnpDeviceIdBattery		     = "PNP0C0A";
+const char *	PnpDeviceIdLid				 = "PNP0C0D";
+const char *	PnpDeviceIdAcAdapter		 = "ACPI0003";
+const char *	AcpiStatus				     = "_STA";
+const char *	AcpiPowerSource			     = "_PSR";
+const char *	AcpiBatteryInformation		 = "_BIF";
+const char *	AcpiBatteryInformationEx	 = "_BIX";
+const char *	AcpiBatteryStatus		     = "_BST";
+const char *	LidStatus					 = "_LID";
+
 /*
 // _BIF
 Package {
@@ -161,7 +164,7 @@ protected:
 	void	setInstantaneousTimeToEmpty(int seconds);
 	void	setSerialString(OSSymbol * sym);
 	void	rebuildLegacyIOBatteryInfo(void);
-  void	setBatteryType(OSSymbol * sym);
+    void	setBatteryType(OSSymbol * sym);
   //----- new for ElCapitan
   /* Protected "setter" methods for subclasses
    * Subclasses should use these setters to modify all battery properties.
@@ -217,36 +220,37 @@ private:
 	bool	BatteriesConnected;
 	bool	BatteriesAreFull;
 	bool	PowerUnitIsWatt;
-  bool  firstTime;
+    bool    firstTime;
 	// *** Other ***
 	BatteryClass				Battery[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		BatteryDevice[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		AcAdapterDevice[MaxAcAdaptersSupported];
-	AppleSmartBattery *	BatteryPowerSource[MaxBatteriesSupported];
+	AppleSmartBattery *			BatteryPowerSource[MaxBatteriesSupported];
+	IOACPIPlatformDevice *		LidDevice;
 	IOWorkLoop *				WorkLoop;
 	IOTimerEventSource *		Poller;
 	// *** Methods ***
 	void	Update(void);
 	void	CheckDevices(void);
-  void  GetBatteryInfoEx(UInt8 battery, OSObject * acpi);
-  void  GetBatteryInfo(UInt8 battery, OSObject * acpi);
-  void  PublishBatteryInfo(UInt8 battery, OSObject * acpi, int Ext);
+    void    GetBatteryInfoEx(UInt8 battery, OSObject * acpi);
+    void    GetBatteryInfo(UInt8 battery, OSObject * acpi);
+    void    PublishBatteryInfo(UInt8 battery, OSObject * acpi, int Ext);
 	void	BatteryInformation(UInt8 battery);
 	void	BatteryStatus(UInt8 battery);
 	void	ExternalPower(bool status);
-  bool	addSensor(const char* key, const char* type, unsigned int size, int index);
+    bool	addSensor(const char* key, const char* type, unsigned int size, int index);
 
 protected:
 //	bool	settingsChangedSinceUpdate;
 public:
 	// *** IOService ***
-  virtual bool      init(OSDictionary *properties=0);
-  virtual void      free(void);
+  virtual bool        init(OSDictionary *properties=0);
+  virtual void        free(void);
 	virtual	IOService *	probe(IOService * provider, SInt32 * score);
 	virtual	bool      start(IOService * provider);
 	virtual void      stop(IOService * provider);
-	virtual IOReturn	setPowerState(unsigned long state, IOService * device);
-	virtual IOReturn	message(UInt32 type, IOService * provider, void * argument);
+	virtual IOReturn  setPowerState(unsigned long state, IOService * device);
+	virtual IOReturn  message(UInt32 type, IOService * provider, void * argument);
   
   virtual IOReturn	callPlatformFunction(const OSSymbol *functionName,
                                          bool waitForFunction,

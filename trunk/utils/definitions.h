@@ -148,6 +148,7 @@
 #define KEY_FORMAT_NON_APPLE_GPU_FREQUENCY      "FGC%X"
 
 #define KEY_NON_APPLE_PACKAGE_MULTIPLIER        "MPkC"
+#define KEY_LID_CLOSED							"MSLD"
 
 
 //SmartGuardian keys
