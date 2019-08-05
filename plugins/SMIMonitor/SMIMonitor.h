@@ -97,6 +97,7 @@ private:
 	IOService*				fakeSMC;
 	IOACPIPlatformDevice *	acpiDevice;
 	OSDictionary*			sensors;
+	int						fanMult;
 	
 	bool				addSensor(const char* key, const char* type, unsigned int size);
 	bool				addTachometer(int index, const char* caption);

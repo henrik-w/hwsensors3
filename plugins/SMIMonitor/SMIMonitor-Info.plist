@@ -26,8 +26,8 @@
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.slice.${PRODUCT_NAME}</string>
-			<key>Divider</key>
-			<integer>10</integer>
+			<key>FanMultiplier</key>
+			<integer>1</integer>
 			<key>FanNames</key>
 			<array>
 				<string>CPU Fan</string>

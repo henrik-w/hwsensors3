@@ -113,7 +113,7 @@ Method (SMI, 2, NotSerialized)
 
 SMMRegisters *globalRegs;
 static int gRc;
-
+//static int fanMult;
 //inline
 static
 int smm(SMMRegisters *regs)
@@ -294,7 +294,7 @@ int SMIMonitor::i8k_get_fan_speed(int fan) {
   if ((rc=i8k_smm(&regs)) < 0) {
     return rc;
   }
-  speed = (regs.eax & 0xffff) * I8K_FAN_MULT;
+  speed = (regs.eax & 0xffff) * fanMult;
   return speed;
 }
 
@@ -322,7 +322,7 @@ int SMIMonitor::i8k_get_fan_nominal_speed(int fan, int speed)
 	INIT_REGS;
 	regs.eax = I8K_SMM_GET_NOM_SPEED;
 	regs.ebx = (fan & 0xff) | (speed << 8);
-	return i8k_smm(&regs) ? 0 : (regs.eax & 0xffff) * I8K_FAN_MULT;
+	return i8k_smm(&regs) ? 0 : (regs.eax & 0xffff) * fanMult;
 }
 
 /*
@@ -475,6 +475,10 @@ bool SMIMonitor::init(OSDictionary *properties) {
   if (!(sensors = OSDictionary::withCapacity(0))) {
     return false;
   }
+  fanMult = 1;
+  OSNumber * Multiplier = OSDynamicCast(OSNumber, dict->getObject("FanMultiplier"));
+  if (Multiplier) 
+    fanMult = Multiplier->unsigned32BitValue();
   return true;
 }
 
