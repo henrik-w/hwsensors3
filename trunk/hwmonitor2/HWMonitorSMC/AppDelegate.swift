@@ -68,10 +68,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       self.useIPG = UDs.bool(forKey: kUseIPG)
     }
     self.hwWC = HWWindowController.loadFromNib()
-    
+    /*
     if (UserDefaults.standard.object(forKey: kRunAtLogin) == nil) {
       self.setLaunchAtStartup()
-    }
+    }*/
   }
   
   func license() {
