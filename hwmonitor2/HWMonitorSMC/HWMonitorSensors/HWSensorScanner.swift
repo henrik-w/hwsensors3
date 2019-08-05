@@ -738,7 +738,7 @@ class HWSensorsScanner: NSObject {
     case .tachometer:
       sensor.stringValue = String(format: "%.0f", v)
       sensor.doubleValue = v
-      valid = gShowBadSensors || (v > 0 && v <= 7000)
+      valid = gShowBadSensors || (v >= 0 && v <= 7000)
     case .frequencyCPU:  fallthrough
     case .frequencyGPU:  fallthrough
     case .frequencyOther:
