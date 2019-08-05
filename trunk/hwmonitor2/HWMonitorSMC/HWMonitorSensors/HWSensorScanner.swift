@@ -456,15 +456,17 @@ class HWSensorsScanner: NSObject {
   
   func getIGPUPackagePower() -> HWMonitorSensor? {
     var arr : [HWMonitorSensor] = [HWMonitorSensor]()
-    let _ =  self.addSMCSensorIfValid(key: SMC_IGPU_PACKAGE_WATT,
-                                      type: DataTypes.SP78,
-                                      unit: .Watt,
-                                      sensorType: .cpuPowerWatt,
-                                      title: "Package IGPU".locale,
-                                      actionType: .gpuLog,
-                                      canPlot: AppSd.sensorsInited ? false : true,
-                                      index: -1,
-                                      list: &arr)
+    if !AppSd.ipgStatus.packageIgpu {
+      let _ =  self.addSMCSensorIfValid(key: SMC_IGPU_PACKAGE_WATT,
+                                        type: DataTypes.SP78,
+                                        unit: .Watt,
+                                        sensorType: .cpuPowerWatt,
+                                        title: "Package IGPU".locale,
+                                        actionType: .gpuLog,
+                                        canPlot: AppSd.sensorsInited ? false : true,
+                                        index: -1,
+                                        list: &arr)
+    }
     return (arr.count > 0) ? arr[0] : nil
   }
   

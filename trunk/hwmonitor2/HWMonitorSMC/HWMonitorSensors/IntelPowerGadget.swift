@@ -12,6 +12,7 @@ struct IPG {
   var inited       : Bool = false
   var packageCore  : Bool = false
   var packageTotal : Bool = false
+  var packageIgpu  : Bool = false
 }
 
 func getIntelPowerGadgetGPUSensors() -> [HWMonitorSensor] {
@@ -72,6 +73,48 @@ func getIntelPowerGadgetGPUSensors() -> [HWMonitorSensor] {
       }
     }
     
+    var numMsrs : Int32 = 0
+    
+    GetNumMsrs(&numMsrs)
+    ReadSample()
+    
+    for j in 0..<numMsrs {
+      var funcID : Int32 = 0
+      let szName = UnsafeMutablePointer<Int8>.allocate(capacity: 1024)
+      GetMsrFunc(j, &funcID)
+      GetMsrName(j, szName)
+      var nData: Int32 = 0
+      let data = UnsafeMutablePointer<Double>.allocate(capacity: 3)
+      GetPowerData(0, j, data, &nData)
+      
+      if funcID == MSR_FUNC_POWER {
+        var name : String = String(format: "%s", szName)
+        let power : Double = data[0]
+        
+        if name == "GT" && (gShowBadSensors || (power >= 0 && power <= 1000)) {
+          name = "Package IGPU"
+          AppSd.ipgStatus.packageIgpu = true
+          let sensor = HWMonitorSensor(key: name,
+                                       unit: .Watt,
+                                       type: "IPG",
+                                       sensorType: .intelWatt,
+                                       title: name.locale,
+                                       canPlot: AppSd.sensorsInited ? false : true)
+          
+          
+          sensor.actionType = .cpuLog;
+          sensor.stringValue = String(format: "%.2f", power)
+          sensor.doubleValue = power
+          sensor.favorite = UDs.bool(forKey: sensor.key)
+          sensors.append(sensor)
+          break
+        }
+      }
+      
+      szName.deallocate()
+      data.deallocate()
+    }
+
   }
   return sensors
 }
@@ -119,7 +162,7 @@ func getIntelPowerGadgetCPUSensors() -> [HWMonitorSensor] {
         AppSd.ipgStatus.packageCore = true
       }
       
-      if gShowBadSensors || (power > 0 && power <= 1000) {
+      if name != "GT" && (gShowBadSensors || (power > 0 && power <= 1000)) {
         let sensor = HWMonitorSensor(key: name,
                                      unit: .Watt,
                                      type: "IPG",
