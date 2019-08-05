@@ -137,7 +137,8 @@ IOService * VoodooBattery::probe(IOService * provider, SInt32 * score) {
 }
 
 bool VoodooBattery::start(IOService * provider) {
-	bool isBattery = false;	
+	bool isBattery = false;
+  char key[5];
 	// Call superclass
   if (!IOService::start(provider)) { return false; }
   
@@ -200,7 +201,7 @@ bool VoodooBattery::start(IOService * provider) {
 	}
   
   if (isBattery) {
-    char key[5];
+
     for (int Index = 0; Index < BatteryCount; Index++) {
       if (BatteryConnected[Index]) {
         snprintf(key, 5, KEY_FORMAT_BAT_VOLTAGE, Index);
@@ -233,10 +234,9 @@ bool VoodooBattery::start(IOService * provider) {
     snprintf(key, 5, KEY_ADAPTER_AMPERAGE);
     addSensor(key, TYPE_UI16, 2, 0);
   }
-  if (attach(LidDevice)
-  {
+  if (attach(LidDevice)) {
 	  snprintf(key, 5, KEY_LID_CLOSED);
-		  addSensor(key, TYPE_FLAG, 1, 0);
+		addSensor(key, TYPE_UI8, 1, 0);
   }
 
 

@@ -88,7 +88,7 @@
 
 /* Define some i2c types, so that we don't depend on additional headers when using NVClock as a library */
 #ifndef _XF86I2C_H
-#include <xf86i2c.h>
+#include "xf86i2c.h"
 /*typedef void* I2CBusPtr;
 typedef void* I2CDevPtr;*/
 #endif

@@ -476,7 +476,7 @@ bool SMIMonitor::init(OSDictionary *properties) {
     return false;
   }
   fanMult = 1;
-  OSNumber * Multiplier = OSDynamicCast(OSNumber, dict->getObject("FanMultiplier"));
+  OSNumber * Multiplier = OSDynamicCast(OSNumber, properties->getObject("FanMultiplier"));
   if (Multiplier) 
     fanMult = Multiplier->unsigned32BitValue();
   return true;

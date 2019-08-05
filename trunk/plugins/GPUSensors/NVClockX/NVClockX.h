@@ -8,7 +8,7 @@
  */
 
 #include <IOKit/IOService.h>
-#include <nvclock.h>
+#include "NVClock/nvclock.h"
 
 #define kGenericPCIDevice "IOPCIDevice"
 #define kNVGraphicsDevice "IONDRVDevice"
