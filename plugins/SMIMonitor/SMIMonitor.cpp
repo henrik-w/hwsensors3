@@ -439,6 +439,9 @@ bool SMIMonitor::start(IOService * provider)
     if (!addTachometer(i, name ? name->getCStringNoCopy() : 0)) {
       WarningLog("Can't add tachometer sensor, key %s", key);
     }
+	//add special key for fan status control
+	snprintf(key, 5, "F%XAs", i);
+	addSensor(key, TYPE_UI8, 1);  //F0As
   }
 //  addSensor(KEY_CPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);
 
@@ -524,14 +527,12 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
     if (name && data) {
       InfoLog("Writing key=%s value=%x", name, *(UInt16*)data);
       //OSObject * params[1];
-      if (name[0] == 'F') {
-        val = decode_fpe2(*(UInt16*)data);
-      } else {
-        val = *(UInt16*)data;
+      if ((name[0] == 'F') && (name[2] == 'A') && (name[3] == 's')) {  //set fan status {off, low, high}
+        val = *(UInt8*)data;
       }
       int fan = (int)(name[1] - '0');
-      int ret = i8k_set_fan(fan, val);
-      return (ret == 0) ? kIOReturnSuccess: kIOReturnBadArgument;
+      int ret = i8k_set_fan(fan, val); //return new status, should we check it?
+      return kIOReturnSuccess;
     }
     return kIOReturnBadArgument;
   }
@@ -546,7 +547,13 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
           val = encode_fpe2(value);
           bcopy(&val, data, 2);
           return kIOReturnSuccess;
-        }
+		}
+		else if ((name[2] == 'A') && (name[3] == 's')) {
+			int fan = (int)(name[1] - '0');
+			val = i8k_get_fan_status(fan);
+			bcopy(&val, data, 1);
+			return kIOReturnSuccess;
+		}
       } else if ((name[0] == 'T') && (name[2] == '0') && (name[3] == 'P')) {
         if (name[1] == 'C') {
           val = i8k_get_temp(0);
