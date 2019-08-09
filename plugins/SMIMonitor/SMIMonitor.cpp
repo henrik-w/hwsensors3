@@ -534,7 +534,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
                                           void *param3,
                                           void *param4) {
   const char* name = (const char*)param1;
-  UInt8 * data = param2;
+  UInt8 * data = (UInt8*)param2;
 //  UInt64 size = (UInt64)param3;
 
 #if __LP64__
@@ -548,38 +548,37 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
     if (name && data) {
       InfoLog("Writing key=%s value=%x", name, *(UInt16*)data);
       //OSObject * params[1];
-	  if ((name[0] == 'F') && (name[2] == 'A') && (name[3] == 's')) {  //set fan status {off, low, high}
-		  val = *(UInt8*)data;
-		  int fan = (int)(name[1] - '0');
-		  int ret = i8k_set_fan(fan, val); //return new status, should we check it?
-		  if (ret == val) {
-			  return kIOReturnSuccess;
-		  }
-		  else {
-			  return kIOReturnError;
-		  }
-	  }
-	  else if ((name[0] == 'F') && (name[1] == 'S') && (name[2] == '!')) {
-		  val = (data[0] << 8) + data[1]; //big endian data
-		  int rc = 0;
-		  for (size_t i = 0; i < fanNum; i++) {
-			  if ((val & (1 << i)) != (fansStatus & (1 << i))) {
-				  rc |= (val & (1 << i)) ? i8k_set_fan_control_manual(i) : i8k_set_fan_control_auto(i);
-			  }
-		  }
-		  if (!rc) {
-			  fansStatus = val;
-			  return kIOReturnSuccess;
-		  }
-		  else {
-			  return kIOReturnError;
-		  }
-		  
-	  }
+      if ((name[0] == 'F') && (name[2] == 'A') && (name[3] == 's')) {  //set fan status {off, low, high}
+        val = *(UInt8*)data;
+        int fan = (int)(name[1] - '0');
+        int ret = i8k_set_fan(fan, val); //return new status, should we check it?
+        if (ret == val) {
+          return kIOReturnSuccess;
+        }
+        else {
+          return kIOReturnError;
+        }
+      }
+      else if ((name[0] == 'F') && (name[1] == 'S') && (name[2] == '!')) {
+        val = (data[0] << 8) + data[1]; //big endian data
+        int rc = 0;
+        for (int i = 0; i < fanNum; i++) {
+          if ((val & (1 << i)) != (fansStatus & (1 << i))) {
+            rc |= (val & (1 << i)) ? i8k_set_fan_control_manual(i) : i8k_set_fan_control_auto(i);
+          }
+        }
+        if (!rc) {
+          fansStatus = val;
+          return kIOReturnSuccess;
+        }
+        else {
+          return kIOReturnError;
+        }
+      }
     }
     return kIOReturnBadArgument;
   }
-
+  
   if (functionName->isEqualTo(kFakeSMCGetValueCallback)) {
     if (name && data) {
       val = 0;
@@ -590,13 +589,19 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
           val = encode_fpe2(value);
           bcopy(&val, data, 2);
           return kIOReturnSuccess;
-		}
-		else if ((name[2] == 'A') && (name[3] == 's')) {
-			int fan = (int)(name[1] - '0');
-			val = i8k_get_fan_status(fan);
-			bcopy(&val, data, 1);
-			return kIOReturnSuccess;
-		}
+        }
+        else if ((name[2] == 'A') && (name[3] == 's')) {
+          int fan = (int)(name[1] - '0');
+          val = i8k_get_fan_status(fan);
+          bcopy(&val, data, 1);
+          return kIOReturnSuccess;
+        }
+        else if ((name[1] == 'S') && (name[2] == '!')) {
+          val = fansStatus;
+          data[0] = val >> 8;
+          data[1] = val & 0xFF;
+          return kIOReturnSuccess;
+        }
       } else if ((name[0] == 'T') && (name[2] == '0') && (name[3] == 'P')) {
         if (name[1] == 'C') {
           val = i8k_get_temp(0);
