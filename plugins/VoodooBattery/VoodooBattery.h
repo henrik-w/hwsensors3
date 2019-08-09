@@ -10,6 +10,7 @@
 #include <IOKit/pwr_mgt/IOPMPowerSource.h>
 #include <IOKit/pwr_mgt/RootDomain.h>
 #include <IOKit/IOTimerEventSource.h>
+#include <IOKit/hidsystem/IOHIKeyboard.h>
 
 //#include "FakeSMC.h"
 
@@ -134,6 +135,33 @@ enum {
   kBFullyDischargedStatusBit        = 0x0010
 };
 
+class ButtonDevice : public IOService
+{
+  OSDeclareDefaultStructors(ButtonDevice);
+
+public:
+  virtual bool attach(IOService * provider);
+  virtual void detach(IOService * provider);
+
+};
+
+class Button : public IOHIKeyboard
+{
+  OSDeclareDefaultStructors(Button);
+private:
+  ButtonDevice * _device;
+  bool pressed;
+public:
+  bool isPressed();
+public:
+  virtual bool init(OSDictionary * properties);
+  virtual bool sendEvent(UInt8);
+  virtual Button * probe(IOService * provider, SInt32 * score);
+
+  virtual bool start(IOService * provider);
+  virtual void stop(IOService * provider);
+
+};
 
 struct BatteryClass {
 	UInt32	LastFullChargeCapacity;
@@ -164,7 +192,7 @@ protected:
 	void	setInstantaneousTimeToEmpty(int seconds);
 	void	setSerialString(OSSymbol * sym);
 	void	rebuildLegacyIOBatteryInfo(void);
-    void	setBatteryType(OSSymbol * sym);
+  void	setBatteryType(OSSymbol * sym);
   //----- new for ElCapitan
   /* Protected "setter" methods for subclasses
    * Subclasses should use these setters to modify all battery properties.
@@ -229,6 +257,7 @@ private:
 	IOACPIPlatformDevice *		LidDevice;
 	IOWorkLoop *				WorkLoop;
 	IOTimerEventSource *		Poller;
+  Button * ACButton;
 	// *** Methods ***
 	void	Update(void);
 	void	CheckDevices(void);

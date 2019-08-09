@@ -506,7 +506,10 @@ bool W836x::probePort() {
         case 0x2B:
           model = NCT679BD;
           break;
-        default:
+        case 0x51:
+          model = NCT6797D;
+          break;
+       default:
           break;
       }
       break;
@@ -918,6 +921,7 @@ const char *W836x::getModelName() {
     case NCT6796D:      return "NCT6796D";
     case NCT6798D:      return "NCT6798D";
     case NCT679BD:      return "NCT679BD";
+    case NCT6797D:      return "NCT6797D";
   }
 
   return "unknown";

@@ -529,10 +529,14 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
       //OSObject * params[1];
       if ((name[0] == 'F') && (name[2] == 'A') && (name[3] == 's')) {  //set fan status {off, low, high}
         val = *(UInt8*)data;
+        int fan = (int)(name[1] - '0');
+        int ret = i8k_set_fan(fan, val);
+        if (ret == val) {
+          return kIOReturnSuccess;
+        } else {
+          return kIOReturnError;
+        }
       }
-      int fan = (int)(name[1] - '0');
-      int ret = i8k_set_fan(fan, val); //return new status, should we check it?
-      return kIOReturnSuccess;
     }
     return kIOReturnBadArgument;
   }
