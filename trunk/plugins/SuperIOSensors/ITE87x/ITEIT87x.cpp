@@ -266,11 +266,13 @@ bool IT87x::probePort() {
   hasSmartGuardian = false;
   switch (id) {
     case IT8512F:
+    case IT8613F:
     case IT8620F:
     case IT8628F:
     case IT8655F:
     case IT8665F:
     case IT8686E:
+    case IT8688E:
     case IT8705F:
     case IT8708F:
     case IT8712F:
@@ -284,6 +286,7 @@ bool IT87x::probePort() {
     case IT8771E:
     case IT8772E:
     case IT8792E:
+    case IT8795E:
     case IT8987E:
       model = id;
       break;
@@ -315,8 +318,8 @@ bool IT87x::probePort() {
   
   if (id == IT8721F || id == IT8726F || id == IT8728F || id == IT8752F ||
       id == IT8771E || id == IT8772E || id == IT8792E || id == IT8987E ||
-      id == IT8620F || id == IT8628F ||
-      id == IT8655F || id == IT8665F || id == IT8686E) {
+      id == IT8620F || id == IT8628F || id == IT8613F || id == IT8795E ||
+      id == IT8655F || id == IT8665F || id == IT8686E || id == IT8688E) {
     voltageGain = 12;
   } else {
     voltageGain = 16;
@@ -351,11 +354,13 @@ void IT87x::exit() {
 const char *IT87x::getModelName() {
   switch (model) {
     case IT8512F: return "IT8512F";
+    case IT8613F: return "IT8613F";
     case IT8620F: return "IT8620F";
     case IT8628F: return "IT8628F";
     case IT8655F: return "IT8655F";
     case IT8665F: return "IT8665F";
     case IT8686E: return "IT8686E";
+    case IT8688E: return "IT8688E";
     case IT8705F: return "IT8705F";
     case IT8708F: return "IT8708F";
     case IT8712F: return "IT8712F";
@@ -369,6 +374,7 @@ const char *IT87x::getModelName() {
     case IT8771E: return "IT8771E";
     case IT8772E: return "IT8772E";
     case IT8792E: return "IT8792E";
+    case IT8795E: return "IT8795E";
     case IT8987E: return "IT8987E";
   }
   
