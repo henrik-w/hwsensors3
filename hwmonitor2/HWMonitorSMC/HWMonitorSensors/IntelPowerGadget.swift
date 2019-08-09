@@ -28,14 +28,13 @@ func getIntelPowerGadgetGPUSensors() -> [HWMonitorSensor] {
                                    sensorType: .percent,
                                    title: "Utilization".locale,
                                    canPlot: AppSd.sensorsInited ? false : true)
-      sensor.logType = .cpuLog;
-      sensor.stringValue = String(format: "%.2f", Double(gpuutil)) + sensor.unit.rawValue.locale
+      sensor.actionType = .cpuLog;
+      sensor.stringValue = String(format: "%.2f", Double(gpuutil))
       sensor.doubleValue = Double(gpuutil)
       sensor.favorite = UDs.bool(forKey: sensor.key)
       sensors.append(sensor)
-    }*/
-    
-    
+    }
+    */
     
     var gtFreq : Int32 = 0
     if GetGTFrequency(&gtFreq) {
@@ -91,22 +90,26 @@ func getIntelPowerGadgetGPUSensors() -> [HWMonitorSensor] {
         var name : String = String(format: "%s", szName)
         let power : Double = data[0]
         
-        if name == "GT" && (gShowBadSensors || (power >= 0 && power <= 1000)) {
-          name = "Package IGPU"
+        if name == "GT" {
+          if gShowBadSensors || (power >= 0 && power <= 100) {
+            name = "Package IGPU"
+            let sensor = HWMonitorSensor(key: name,
+                                         unit: .Watt,
+                                         type: "IPG",
+                                         sensorType: .igpuPowerWatt,
+                                         title: name.locale,
+                                         canPlot: AppSd.sensorsInited ? false : true)
+            
+            
+            sensor.actionType = .cpuLog;
+            sensor.stringValue = String(format: "%.2f", power)
+            sensor.doubleValue = power
+            sensor.favorite = UDs.bool(forKey: sensor.key)
+            sensors.append(sensor)
+            AppSd.ipgStatus.packageIgpu = true
+            break
+          }
           AppSd.ipgStatus.packageIgpu = true
-          let sensor = HWMonitorSensor(key: name,
-                                       unit: .Watt,
-                                       type: "IPG",
-                                       sensorType: .intelWatt,
-                                       title: name.locale,
-                                       canPlot: AppSd.sensorsInited ? false : true)
-          
-          
-          sensor.actionType = .cpuLog;
-          sensor.stringValue = String(format: "%.2f", power)
-          sensor.doubleValue = power
-          sensor.favorite = UDs.bool(forKey: sensor.key)
-          sensors.append(sensor)
           break
         }
       }

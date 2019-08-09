@@ -460,7 +460,7 @@ class HWSensorsScanner: NSObject {
       let _ =  self.addSMCSensorIfValid(key: SMC_IGPU_PACKAGE_WATT,
                                         type: DataTypes.SP78,
                                         unit: .Watt,
-                                        sensorType: .cpuPowerWatt,
+                                        sensorType: .igpuPowerWatt,
                                         title: "Package IGPU".locale,
                                         actionType: .gpuLog,
                                         canPlot: AppSd.sensorsInited ? false : true,
@@ -753,14 +753,15 @@ class HWSensorsScanner: NSObject {
       sensor.stringValue = String(format: "%d", MHZ)
       sensor.doubleValue = Double(MHZ)
       valid = gShowBadSensors || (MHZ > 0 && MHZ < 9000) // OC record is 8794 (AMD FX-8350) on Nov 10 2012
+    case .igpuPowerWatt:
+      sensor.stringValue = String(format: "%.2f", v)
+      sensor.doubleValue = v
+      valid = gShowBadSensors || (v >= 0 && v < 150) // 30 W max?
+    case .intelWatt:   fallthrough
     case .cpuPowerWatt:
       sensor.stringValue = String(format: "%.2f", v)
       sensor.doubleValue = v
-      if sensor.key == SMC_IGPU_PACKAGE_WATT {
-        valid = gShowBadSensors || (v >= 0 && v < 150) // 30 W max?
-      } else {
-        valid = gShowBadSensors || (v > 0 && v < 1000) // reached from an Intel i9-7890XE in extreme OC
-      }
+      valid = gShowBadSensors || (v > 0 && v < 1000) // reached from an Intel i9-7890XE in extreme OC
     case .multiplier:
       var m: UInt = 0
       bcopy((data as NSData).bytes, &m, 2)

@@ -437,12 +437,6 @@ class PopoverViewController: NSViewController, USBWatcherDelegate {
         }
         self.GPUNode?.mutableChildren.addObjects(from: IOAcc)
       } else {
-        if let ipp = AppSd.sensorScanner.getIGPUPackagePower() {
-          let IGPUPackage = HWTreeNode(representedObject: HWSensorData(group: (self.GPUNode?.sensorData?.group)!, sensor: ipp, isLeaf: true))
-          self.sensorList?.add(IGPUPackage)
-          self.GPUNode?.mutableChildren.add(IGPUPackage)
-        }
-        
         if AppSd.ipgStatus.inited {
           for s in getIntelPowerGadgetGPUSensors() {
             let sensor = HWTreeNode(representedObject: HWSensorData(group: (self.GPUNode?.sensorData?.group)!,
@@ -451,6 +445,12 @@ class PopoverViewController: NSViewController, USBWatcherDelegate {
             self.sensorList?.add(sensor)
             self.GPUNode?.mutableChildren.add(sensor)
           }
+        }
+        
+        if let ipp = AppSd.sensorScanner.getIGPUPackagePower() {
+          let IGPUPackage = HWTreeNode(representedObject: HWSensorData(group: (self.GPUNode?.sensorData?.group)!, sensor: ipp, isLeaf: true))
+          self.sensorList?.add(IGPUPackage)
+          self.GPUNode?.mutableChildren.add(IGPUPackage)
         }
       }
       

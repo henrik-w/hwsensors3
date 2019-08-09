@@ -57,8 +57,10 @@ extension PopoverViewController {
         if self.useIntelPowerGadget {
           newRead.append(contentsOf: getIntelPowerGadgetGPUSensors())
         }
-        if let ipp = AppSd.sensorScanner.getIGPUPackagePower() {
-          newRead.append(ipp)
+        if !AppSd.ipgStatus.packageIgpu {
+          if let ipp = AppSd.sensorScanner.getIGPUPackagePower() {
+            newRead.append(ipp)
+          }
         }
       }
       let copy : NSArray = self.sensorList?.copy() as! NSArray
