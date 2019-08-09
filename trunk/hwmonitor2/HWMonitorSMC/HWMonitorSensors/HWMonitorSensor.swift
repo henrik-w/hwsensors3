@@ -54,36 +54,37 @@ enum HWSensorType : Int {
 
   // SMC
   case cpuPowerWatt         =  7
-  case temperature          =  8
-  case voltage              =  9
-  case tachometer           = 10
-  case frequencyCPU         = 11
-  case frequencyGPU         = 12
-  case frequencyOther       = 13
-  case multiplier           = 14
+  case igpuPowerWatt        =  8
+  case temperature          =  9
+  case voltage              = 10
+  case tachometer           = 11
+  case frequencyCPU         = 12
+  case frequencyGPU         = 13
+  case frequencyOther       = 14
+  case multiplier           = 15
   
   // S.M.A.R.T.
-  case hdSmartTemp          = 15
-  case hdSmartLife          = 16
-  case mediaSMARTContenitor = 17 // identify just the sub groups that aren't sensors
+  case hdSmartTemp          = 16
+  case hdSmartLife          = 17
+  case mediaSMARTContenitor = 18 // identify just the sub groups that aren't sensors
   
   // Battery (actually taken from the driver only)
-  case battery              = 18
-  case genericBattery       = 19
+  case battery              = 19
+  case genericBattery       = 20
 
-  case gpuIO_coreClock      = 20
-  case gpuIO_memoryClock    = 21
-  case gpuIO_temp           = 22
-  case gpuIO_FanRPM         = 23
-  case gpuIO_percent        = 24
-  case gpuIO_RamBytes       = 25
-  case gpuIO_Watts          = 26
+  case gpuIO_coreClock      = 21
+  case gpuIO_memoryClock    = 22
+  case gpuIO_temp           = 23
+  case gpuIO_FanRPM         = 24
+  case gpuIO_percent        = 25
+  case gpuIO_RamBytes       = 26
+  case gpuIO_Watts          = 27
   
   
   // RAM. Taken from the System
-  case memory               = 27
+  case memory               = 28
   // usb, taken from the driver. used only in logs
-  case usb                  = 28
+  case usb                  = 29
 }
 
 

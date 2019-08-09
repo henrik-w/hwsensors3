@@ -198,11 +198,12 @@ class PlotView: NSView, CPTPlotDataSource, CPTPlotDelegate {
           case .intelmWh:           fallthrough
           case .intelJoule:         fallthrough
           case .cpuPowerWatt:       fallthrough
+          case .igpuPowerWatt:      fallthrough
           case .intelWatt:
             conformedVal = (value * 100) / AppSd.cpuTDP
             /*
              We need the TDP and no problem using Intel Power Gadget,
-             but what to do if we don't have the it? let the user set this value.\
+             but what to do if we don't have the it? let the user set this value!
              */
             self.plotSpace?.yRange = CPTPlotRange(location: NSNumber(value: 0.0), length: NSNumber(value: 35.0 ))
             

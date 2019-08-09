@@ -318,19 +318,20 @@ public struct Graphics {
         }
 
         if vendorID == Intel_ID {
-          if let ipp = AppSd.sensorScanner.getIGPUPackagePower() {
-            let IGPUPackage = HWTreeNode(representedObject: HWSensorData(group: model,
-                                                                         sensor: ipp,
-                                                                         isLeaf: true))
-            gpuNode.mutableChildren.add(IGPUPackage)
-          }
-          
           if AppSd.ipgStatus.inited {
             for s in getIntelPowerGadgetGPUSensors() {
               let ipgSensor = HWTreeNode(representedObject: HWSensorData(group: model,
                                                                          sensor: s,
                                                                          isLeaf: true))
               gpuNode.mutableChildren.add(ipgSensor)
+            }
+          }
+          if !AppSd.ipgStatus.packageIgpu {
+            if let ipp = AppSd.sensorScanner.getIGPUPackagePower() {
+              let IGPUPackage = HWTreeNode(representedObject: HWSensorData(group: model,
+                                                                           sensor: ipp,
+                                                                           isLeaf: true))
+              gpuNode.mutableChildren.add(IGPUPackage)
             }
           }
         }
