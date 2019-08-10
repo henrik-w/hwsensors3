@@ -575,7 +575,21 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
           return kIOReturnError;
         }
       }
-    }
+      else if ((name[0] == 'F') && (name[2] == 'M') && (name[3] == 'd')) {
+        val = data[0];
+        int fan = (int)(name[1] - '0');
+        int rc = 0;
+        if (val != (fansStatus & (1 << fan))>>fan) {
+          rc |= val ? i8k_set_fan_control_manual(fan) : i8k_set_fan_control_auto(fan);
+        }
+        if (!rc) {
+          fansStatus = val ? (fansStatus | (1 << fan)): (fansStatus & ~(1 << fan));
+          return kIOReturnSuccess;
+        }
+        else {
+          return kIOReturnError;
+        }
+      }    }
     return kIOReturnBadArgument;
   }
   
@@ -600,6 +614,12 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
           val = fansStatus;
           data[0] = val >> 8;
           data[1] = val & 0xFF;
+          return kIOReturnSuccess;
+        }
+        else if ((name[2] == 'M') && (name[3] == 'd')) {
+          int fan = (int)(name[1] - '0');
+          val = (fansStatus & (1 << fan)) >> fan;
+          bcopy(&val, data, 1);
           return kIOReturnSuccess;
         }
       } else if ((name[0] == 'T') && (name[2] == '0') && (name[3] == 'P')) {
