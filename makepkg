@@ -51,22 +51,20 @@ AmdCPUMonitor
 # gpuExt: gpu extensions
 gpuExt=(
 GeforceSensor
-NVClockX
 RadeonMonitor
-X3100
 )
 
 # lpcExt: lpc extensions
 lpcExt=(
 F718x
 ITEIT87x
-PC8739x
 W836x
 )
 
 # aloneExt: extensions that aren't under specific group like other above
 aloneExt=(
 ACPIMonitor
+SMIMonitor
 VoodooBatterySMC
 )
 

@@ -174,7 +174,7 @@
 #define KEY_FORMAT_FAN_MIN_SPEED            "F%dMn"
 #define KEY_FORMAT_FAN_MAX_SPEED            "F%dMx"
 #define KEY_FAN_FORCE                       "FS! "
-
+#define KEY_FORMAT_FAN_MANUAL_DRIVE         "F%dMd"
 
 #define KEY_FORMAT_FAN_START_TEMP           "F%dSt"
 //start temperature, At this temperature the fan will start with the start pwm value. 
