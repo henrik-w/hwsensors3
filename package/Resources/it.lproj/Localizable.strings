@@ -39,6 +39,11 @@ SMIMonitor.kext
 VoodooBatterySMC.kext
 W836x.kext
 X3100.kext
+SMCBatteryManager.kext
+SMCLightSensor.kext
+SMCProcessor.kext
+SMCSuperIO.kext
+VirtualSMC.kext
 
 Queste estensioni vengono cercate in tutte le sotto cartelle (all'interno di altri kexts) in /System/Library/Extensions (oppure EFI/CLOVER/kexts/Other se l'opzione è stata selezionata) e spostate in una cartella di backup nella root del Volume selezionato.
 I kexts che hai selezionato, se più di uno, verranno copiati in FakeSMC.kext/Contents/PlugIns/, per questo vedrai solo quest'ultimo!";
@@ -92,3 +97,6 @@ deve essere usato con un DSDT modificato apposta. Maggiori informazioni a http:/
 "VoodooBatterySMC_title" = "VoodooBatterySMC.kext";
 "VoodooBatterySMC_description" = "Abilita l'icona della Batteria dei Notebook nella barra superiore.
 HWMonitorSMC.app v1 oppure v2 sono in grado di leggere anche il suo voltaggio e l'amperaggio.";
+
+"SMIMonitor_title" = "SMIMonitor.kext";
+"SMIMonitor_description" = "Based on I8kfan project";
