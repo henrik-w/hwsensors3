@@ -251,8 +251,9 @@ const char * SMIMonitor::getKeyForTemp(int type) {
     case I8K_SMM_TEMP_MISC:
       return KEY_NORTHBRIDGE_TEMPERATURE;
     case I8K_SMM_TEMP_AMBIENT:
-      return KEY_AMBIENT_TEMPERATURE;
-
+      return KEY_AMBIENT_TEMPERATURE; //
+    case I8K_SMM_TEMP_OTHER:
+      return KEY_AIRPORT_TEMPERATURE;
     default:
       break;
   }
@@ -291,7 +292,7 @@ int SMIMonitor::i8k_get_power_status(void) {
    i8k_smm(&regs);
    InfoLog("Got power type=%d", (regs.eax & 0xff));
    */
-  regs.eax = I8K_SMM_GET_POWER_STATUS;
+  regs.eax = I8K_SMM_GET_POWER_TYPE; //I8K_SMM_GET_POWER_STATUS;
   if ((rc=i8k_smm(&regs)) < 0) {
     WarningLog("No power status");
     return rc;
@@ -510,49 +511,19 @@ bool SMIMonitor::start(IOService * provider)
   snprintf(key, 5, KEY_FAN_FORCE);
   addSensor(key, TYPE_UI16, 2);  //FS!
 
-  for (int i=0; i<5; i++) {
+  for (int i=0; i<6; i++) {
     rc = i8k_get_temp(i);
     if (rc >= 0) {
       int type = i8k_get_temp_type(i);
-      if ((type >=0) && (type <=6)) {
+      if ((type >= I8K_SMM_TEMP_CPU) && (type <= I8K_SMM_TEMP_OTHER)) {
         TempSensors[type] = i;
+        InfoLog("sensor %d type %d", i, type);
+        addSensor(getKeyForTemp(type), TYPE_SP78, 2);
       }
-      InfoLog("sensor %d type %d", i, type);
-      addSensor(getKeyForTemp(type), TYPE_SP78, 2);
     }
   }
-  /*
-  memset(&regs, 0, sizeof(regs));
-  regs.eax = I8K_SMM_GET_TEMP;
-  regs.ebx = 0;
-  if (!i8k_smm(&regs)) {
-    addSensor(KEY_CPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TC0P
-    memset(&regs, 0, sizeof(regs));
-    regs.eax = I8K_SMM_GET_TEMP_TYPE;
-    regs.ebx = 0;
-    if (!i8k_smm(&regs)) {
-      InfoLog("sensor %d type %d", 0, regs.eax);
-    }
-  }
-  memset(&regs, 0, sizeof(regs));
-  regs.eax = I8K_SMM_GET_TEMP;
-  regs.ebx = 1;
-  if (!i8k_smm(&regs))   addSensor(KEY_GPU_PROXIMITY_TEMPERATURE, TYPE_SP78, 2);  //TG0P
-  memset(&regs, 0, sizeof(regs));
-  regs.eax = I8K_SMM_GET_TEMP;
-  regs.ebx = 2;
-  if (!i8k_smm(&regs))   addSensor(KEY_DIMM_TEMPERATURE, TYPE_SP78, 2);  //Tm0P
-  memset(&regs, 0, sizeof(regs));
-  regs.eax = I8K_SMM_GET_TEMP;
-  regs.ebx = 3;
-  if (!i8k_smm(&regs))   addSensor(KEY_NORTHBRIDGE_TEMPERATURE, TYPE_SP78, 2);  //TN0P
-  memset(&regs, 0, sizeof(regs));
-  regs.eax = I8K_SMM_GET_TEMP;
-  regs.ebx = 4;
-  if (!i8k_smm(&regs))   addSensor(KEY_AMBIENT_TEMPERATURE, TYPE_SP78, 2);  //TA0P
-*/
-  registerService(0);
 
+  registerService(0);
   return true;
 }
 
@@ -563,7 +534,7 @@ bool SMIMonitor::init(OSDictionary *properties) {
   if (!(sensors = OSDictionary::withCapacity(0))) {
     return false;
   }
-  fanMult = 1;
+  fanMult = 1; //linux proposed to get nominal speed and if it high then change multiplier
   OSNumber * Multiplier = OSDynamicCast(OSNumber, properties->getObject("FanMultiplier"));
   if (Multiplier)
     fanMult = Multiplier->unsigned32BitValue();
@@ -600,13 +571,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
   const char* name = (const char*)param1;
   UInt8 * data = (UInt8*)param2;
   //  UInt64 size = (UInt64)param3;
-/*
-#if __LP64__
-  UInt64 value;
-#else
-  UInt32 value;
-#endif
- */
+
   size_t value;
   UInt16 val;
 
@@ -615,7 +580,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
       InfoLog("Writing key=%s value=%x", name, *(UInt8*)data);
       //OSObject * params[1];
       if ((name[0] == 'F') && (name[2] == 'A') && (name[3] == 's')) {  //set fan status {off, low, high}
-        val = *(UInt8*)data;
+        val = *(UInt8*)data & 3; //restrict possible values to 0,1,2,3
         int fan = (int)(name[1] - '0');
         int ret = i8k_set_fan(fan, val); //return new status, should we check it?
         if (ret == val) {
@@ -643,7 +608,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
       }
       else if ((name[0] == 'F') && (name[2] == 'M') && (name[3] == 'd')) {
         val = data[0];
-        int fan = (int)(name[1] - '0');
+        int fan = (int)(name[1] - '0') & 0x7; //restrict to 7 fans
         int rc = 0;
         if (val != (fansStatus & (1 << fan))>>fan) {
           rc |= val ? i8k_set_fan_control_manual(fan) : i8k_set_fan_control_auto(fan);
@@ -683,7 +648,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
           return kIOReturnSuccess;
         }
         else if ((name[2] == 'M') && (name[3] == 'd')) {
-          int fan = (int)(name[1] - '0');
+          int fan = (int)(name[1] - '0') & 0x7;
           val = (fansStatus & (1 << fan)) >> fan;
           bcopy(&val, data, 1);
           return kIOReturnSuccess;
@@ -699,6 +664,8 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
           val = i8k_get_temp(TempSensors[I8K_SMM_TEMP_MISC]);
         } else if (name[1]  == 'A') {
           val = i8k_get_temp(TempSensors[I8K_SMM_TEMP_AMBIENT]);
+        } else if (name[1]  == 'W') {
+          val = i8k_get_temp(TempSensors[I8K_SMM_TEMP_OTHER]);
         }
         bcopy(&val, data, 1);
         return kIOReturnSuccess;
