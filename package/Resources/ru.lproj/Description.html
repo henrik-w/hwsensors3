@@ -15,18 +15,16 @@
     span.s1 {font: 10.0px 'Lucida Grande'}
     span.s2 {color: #000000}
     span.s3 {text-decoration: underline}
-  </style></head><body><small><span style="font-family: Times;">You can do the Installation in two ways:<br>
+  </style></head><body><small><span style="font-family: Times;">Вы можете выполнить установку двумя способами:<br>
 <br>
-1) Install the FakeSMC.kext and its plugins in
-/System/Library/Extensions of the target Volume (SIP must be disable or
-allow unsigned kexts).<br>
+1) Установить FakeSMC.kext и его плагины в
+/System/Library/Extensions на системный раздел (SIP должен быть выключен полностью или частично разрешить установку неподписанных кекстов).<br>
 <br>
-2) Install the FakeSMC.kext and its plugins in EFI/CLOVER/kexts/Other
-of the ESP that belong to target Volume (Clover must be already
-installed).<br>
+2) Установить FakeSMC.kext и его плагины в EFI/CLOVER/kexts/Other
+на разделе ESP основного раздела (Clover должен быть уже установлен).<br>
 <br>
-Backup:<br>
-This package at each run remove previous installed FakeSMC.kext and PlugIns (also from other projects):<br>
+Backup (архив):<br>
+Этот пакет при каждой инсталляции удаляет прежде установленный FakeSMC.kext и плагины (также от других проектов):<br>
 FakeSMC.kext<br>
 ADT7470.kext<br>
 Andigilog.kext<br>
@@ -57,9 +55,9 @@ SMCSuperIO.kext<br>
 VirtualSMC.kext<br>
 <br>
 <br>
-These kexts are searched in all subdirectories of /S/L/E (or EFI/CLOVER/kexts/Other if that is selected)<br>
-and moved to a backup folder in the root of the target Volume.<br>
-New ones are copied inside the new FakeSMC.kext/Contents/PlugIns/, for this you will see only the FakeSMC.kext!<br>
+Эти кексты будут найдены во всех папках в /S/L/E (или EFI/CLOVER/kexts/Other если она выбрана)<br>
+ и будут перемещены в архив в корне выбранного раздела.<br>
+Новые плагины будут скопированы внутрь FakeSMC.kext/Contents/PlugIns/, так что вы будете видеть только FakeSMC.kext!<br>
 <br>
-HWMonitorSMC.app installs in /Applications of the target Volume.</span></small><br>
+HWMonitorSMC.app будет установлена в /Программы выбранного раздела.</span></small><br>
 </body></html>

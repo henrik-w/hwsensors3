@@ -1,21 +1,20 @@
 "HWMonitorSMC_title" = "HWMonitorSMC.app v1";
-"HWMonitorSMC_description" = "HWMonitorSMC.app v1 is a top-bar application made in objective-c.
-It works with current or older OSes. Take a look also at HWMonitorSMC.app v2.";
+"HWMonitorSMC_description" = "HWMonitorSMC.app v1 это приложение для верхнего меню, сделанное в objective-c.
+Оно работает в макОС всех версий и на любом железе. Рассмотрите также HWMonitorSMC.app v2.";
 
 "HWMonitorSMC2_title" = "HWMonitorSMC.app v2";
-"HWMonitorSMC2_description" = "HWMonitorSMC.app v2 is a top-bar application made in Swift.
-Provide more readings compared to HWMonitorSMC.app v1 (like the RAM usage and the reading of all cpu's cores).
-Works only in newer OSes like 10.10+.";
+"HWMonitorSMC2_description" = "HWMonitorSMC.app v2 это приложение для верхнего меню, сделанное на Swift.
+Оно предлагает много больше полезной информации, чем HWMonitorSMC.app v1 (использование памяти, энергопотребление и другое).
+Работает только в новых системах, 10.10+.";
 
 "Extensions_title" = "Kernel extensions";
-"Extensions_description" = "Mandatory FakeSMC.kext and PlugIns to enable the reading of the hardware sensors.";
+"Extensions_description" = "Обязательный FakeSMC.kext и выборочные плагины для чтения датчиков.";
 
-"kextsToESP_title" = "Install kexts to the ESP";
-"kextsToESP_description" = "If selected, chosen kexts will be installed in the EFI System Partition that belong to the target Volume at EFI/CLOVER/kexts/Other. Note that this is for Clover only and must be previously installed!
-Otherwise the installation is performed in /System/Library/Extensions of the target Volume.
+"kextsToESP_title" = "Установить кексты в ESP";
+"kextsToESP_description" = "Если выбрано, нужные кексты будут установлены в раздел EFI System Partition, который располагается на том же диске, что и выбранный раздел с системой, в папку EFI/CLOVER/kexts/Other. Это справедливо только для Кловера, и он должен быть уже установлен. Иначе устанавливайте кексты в системныую папку /System/Library/Extensions.
 
-Backup:
-This package at each run remove previous installed FakeSMC.kext and PlugIns (also from other projects):
+Backup (архив):
+Этот пакет при каждом запуске удаляет FakeSMC.kext и его плагины из предыдущей инсталляции:
 FakeSMC.kext
 ADT7470.kext
 Andigilog.kext
@@ -45,59 +44,59 @@ SMCProcessor.kext
 SMCSuperIO.kext
 VirtualSMC.kext
 
-These kexts are searched in all subdirectories of /S/L/E (or EFI/CLOVER/kexts/Other if that is selected)
-and moved to a backup folder in the root of the target Volume. New ones are copied inside the new FakeSMC.kext/Contents/PlugIns/, for this you will see only the FakeSMC.kext!";
+Эти кексты будут найдены в /S/L/E (или EFI/CLOVER/kexts/Other если она выбрана)
+и перемещены в архивную папку в корне системного раздела. Новые плагины будут помещены в папку FakeSMC.kext/Contents/PlugIns/, так что вы будете видеть только один FakeSMC.kext!";
 
 "FakeSMC_title" = "FakeSMC.kext";
-"FakeSMC_description" = "Slice's version of the mandatory driver made by Netkas.";
+"FakeSMC_description" = "Версия 3 от Slice, первоначально разработанного Netkas. Драйвер обязателен!";
 
 "CPU_title" = "CPU";
-"CPU_description" = "Below plugins enable the reading of the CPU sensors.";
+"CPU_description" = "Плагины для чтения параметров ЦПУ: температура, скорость и вольтаж, когда возможно.";
 
 "IntelCPUMonitor_title" = "IntelCPUMonitor.kext";
-"IntelCPUMonitor_description" = "Enable the reading of the CPU sensors. Use that only with Intel CPUs.";
+"IntelCPUMonitor_description" = "Плагин для Intel CPUs.";
 
 "AmdCPUMonitor_title" = "AmdCPUMonitor.kext";
-"AmdCPUMonitor_description" = "Enable the reading of the CPU sensors. Use that only with AMD CPUs.";
+"AmdCPUMonitor_description" = "Плагин для AMD CPUs.";
 
 "GPU_title" = "GPU";
-"GPU_description" = "Below plugins enable the reading of the GPU sensors.";
+"GPU_description" = "Плагины для чтения параметров видеокарты: температура, вентилятор, когда возможно.";
 
 "GeforceSensor_title" = "GeforceSensor.kext";
-"GeforceSensor_description" = "Enable the reading of the GPU sensors for NVidia 4xx, 5xx, ...10xx Series.";
+"GeforceSensor_description" = "Плагин для NVidia 4xx, 5xx, ...10xx Series.";
 
 "NVClockX_title" = "NVClockX.kext";
-"NVClockX_description" = "Enable the reading of the GPU sensors for NVidia 7xxx-9xxx Series.";
+"NVClockX_description" = "Плагин для NVidia 7xxx-9xxx серий в системах до 10.7.5.";
 
 "RadeonMonitor_title" = "RadeonMonitor.kext";
-"RadeonMonitor_description" = "Enable the reading of the GPU sensors for
-ATI/AMD Radeon HD4xxx - 8xxx, R5-R9 2xx 3xx 4xx 5xx cards.";
+"RadeonMonitor_description" = "Плагин для 
+ATI/AMD Radeon HD4xxx - 8xxx, R5-R9 2xx 3xx 4xx 5xx Vega cards.";
 
 "X3100_title" = "X3100.kext";
-"X3100_description" = "Enable the reading of the GPU sensors for Intel X3100 at 965M chipset.";
+"X3100_description" = "Плагин для Intel X3100 at 965M chipset в системах до 10.7.5 - 32бит";
 
 "LPC_title" = "LPC";
-"LPC_description" = "Below plugins to enable the reading of the Motherboard sensors.";
+"LPC_description" = "Плагины для мониторинга параметров материнской платы, осуществляемого SuperIO чипом на шине LPC.";
 
 "F718x_title" = "F718x.kext";
-"F718x_description" = "For Fintek LPC chips.";
+"F718x_description" = "Для Fintek LPC chips.";
 
 "ITEIT87x_title" = "ITEIT87x.kext";
-"ITEIT87x_description" = "For ITE LPC chip, usually for Gigabyte motherboards.";
+"ITEIT87x_description" = "Для ITE LPC chip, обычного для плат от Gigabyte.";
 
 "PC8739x_title" = "PC8739x.kext";
-"PC8739x_description" = "For SMC LPC chip.";
+"PC8739x_description" = "Для SMC LPC chip, найденого в старых ноутбуках в системах до 10.7.5.";
 
 "W836x_title" = "W836x.kext";
-"W836x_description" = "For Winbond or Nuvoton NCT LPC chip, usual for ASUS motherboards.";
+"W836x_description" = "Для чипов Winbond или Nuvoton, обычного для плат ASUS.";
 
 "ACPIMonitor_title" = "ACPIMonitor.kext";
-"ACPIMonitor_description" = "Installing this kext isn't enough to read FANs or Ambient sensors:
-must be used with custom DSDT edits. Look at http://www.insanelymac.com/forum/topic/309328-howto-acpi-access-for-monitoring/.";
+"ACPIMonitor_description" = "Плагин для разработчиков. Он не работает сам по себе, чтобы его использовать, вы должны уметь редактировать DSDT или создавать свои SSDT, расчитанные на использование этого плагина. Смотрите, как это делается в теме 
+ http://www.insanelymac.com/forum/topic/309328-howto-acpi-access-for-monitoring/.";
 
 "VoodooBatterySMC_title" = "VoodooBatterySMC.kext";
-"VoodooBatterySMC_description" = "Enable the reading of laptop's battery status in the top-bar.
-HWMonitorSMC.app v1 or v2 can read also its voltage/amperage.";
+"VoodooBatterySMC_description" = "Плагин для контроля параметров аккумулятора ноутбука. При его использовании нужно удалить альтернативные кексты как ACPIBattery, AppleSmartBattery и другие.
+HWMonitorSMC.app v1 и v2 могут читать его текущие данные о напряжении и токе.";
 
 "SMIMonitor_title" = "SMIMonitor.kext";
-"SMIMonitor_description" = "Based on I8kfan project";
+"SMIMonitor_description" = "Плагин для мониторинга и контроля температур и вентиляторов на компьютерах производства Dell, используя их фирменную технологию SMI (System Management Interface). Первоначально основан на проекте i8k.";
