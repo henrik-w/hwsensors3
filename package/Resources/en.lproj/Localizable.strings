@@ -100,4 +100,4 @@ must be used with custom DSDT edits. Look at http://www.insanelymac.com/forum/to
 HWMonitorSMC.app v1 or v2 can read also its voltage/amperage.";
 
 "SMIMonitor_title" = "SMIMonitor.kext";
-"SMIMonitor_description" = "Based on I8kfan project";
+"SMIMonitor_description" = "Enable temperature and fan monitoring and control for Dell computers based on OEM technology SMI (System Management Interface) described in I8kfan project";
