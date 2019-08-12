@@ -26,7 +26,7 @@
 #define KEY_GPU_DIODE_TEMPERATURE               "TG0D"
 #define KEY_FORMAT_GPU_DIODE_TEMPERATURE        "TG%XD"
 #define	KEY_GPU_HEATSINK_TEMPERATURE            "TG0H"
-#define	KEY_FORMAT_GPU_HEATSINK_TEMPERATURE		"TG%XH"
+#define	KEY_FORMAT_GPU_HEATSINK_TEMPERATURE		  "TG%XH"
 #define KEY_GPU_PROXIMITY_TEMPERATURE           "TG0P"
 #define KEY_FORMAT_GPU_PROXIMITY_TEMPERATURE    "TG%XP"
 #define KEY_GPU_MEMORY_TEMPERATURE              "TG0M"
@@ -52,7 +52,7 @@
 #define KEY_AMBIENT_TEMPERATURE                 "TA0P"
 #define KEY_AMBIENT1_TEMPERATURE                "TA1P"
 #define KEY_DIMM_TEMPERATURE                    "Tm0P" 
-#define KEY_DIMM2_TEMPERATURE                    "Tm1P" 
+#define KEY_DIMM2_TEMPERATURE                   "Tm1P"
 #define KEY_AIRVENT_TEMPERATURE                 "TV0P" // Air Vent Exit
 #define KEY_AIRPORT_TEMPERATURE                 "TW0P"
 
