@@ -612,7 +612,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
 
   if (functionName->isEqualTo(kFakeSMCSetValueCallback)) {
     if (name && data) {
-      InfoLog("Writing key=%s value=%x", name, *(UInt16*)data);
+      InfoLog("Writing key=%s value=%x", name, *(UInt8*)data);
       //OSObject * params[1];
       if ((name[0] == 'F') && (name[2] == 'A') && (name[3] == 's')) {  //set fan status {off, low, high}
         val = *(UInt8*)data;
