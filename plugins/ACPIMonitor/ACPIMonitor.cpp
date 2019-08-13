@@ -57,7 +57,7 @@ bool ACPIMonitor::addTachometer(const char* method, const char* id) {
 		if (addSensor(method, name, TYPE_FPE2, 2)) {
 			if (id) {
         FanTypeDescStruct fds;
-				snprintf(name, 5, KEY_FORMAT_FAN_ID, length);
+		snprintf(name, 5, KEY_FORMAT_FAN_ID, length);
         fds.type = FAN_PWM_TACH;
         fds.ui8Zone = 1;
         fds.location = LEFT_LOWER_FRONT;
@@ -70,7 +70,7 @@ bool ACPIMonitor::addTachometer(const char* method, const char* id) {
                                                               (void *)((UInt64)sizeof(fds)),
                                                               (void *)&fds)) {
           
-					WarningLog("error adding tachometer id value");
+			WarningLog("error adding tachometer id value");
         }
 			}
 			length++;

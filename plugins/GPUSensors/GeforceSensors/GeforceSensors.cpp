@@ -91,7 +91,7 @@ bool GeforceSensors::addSensor(const char* key, const char* type, unsigned int s
   return 0;
 }
 
-int GeforceSensors::addTachometer(int index) {
+int GeforceSensors::addTachometer(int index, const char* id) {
   UInt8 length = 0;
   void * data = 0;
   
@@ -106,6 +106,25 @@ int GeforceSensors::addTachometer(int index) {
     snprintf(name, 5, KEY_FORMAT_FAN_SPEED, length);
     
     if (addSensor(name, TYPE_FPE2, 2, index)) {
+		if (id) {
+			FanTypeDescStruct fds;
+			snprintf(key, 5, KEY_FORMAT_FAN_ID, length);
+			fds.type = FAN_PWM_TACH;
+			fds.ui8Zone = 1;
+			fds.location = LEFT_LOWER_FRONT;
+			strncpy(fds.strFunction, id, DIAG_FUNCTION_STR_LEN);
+
+			if (kIOReturnSuccess != fakeSMC->callPlatformFunction(kFakeSMCAddKeyValue,
+				false,
+				(void *)key,
+				(void *)TYPE_FDESC,
+				(void *)((UInt64)sizeof(fds)),
+				(void *)&fds)) {
+
+				WarningLog("error adding tachometer id value");
+			}
+		}
+
       length++;
       
       if (kIOReturnSuccess != fakeSMC->callPlatformFunction(kFakeSMCSetKeyValue,
@@ -437,7 +456,7 @@ bool GeforceSensors::start(IOService * provider) {
       
       UInt8 fanIndex = 0;
       
-      if (addTachometer( fanIndex)) {
+      if (addTachometer( fanIndex, title)) {
         if (card.fan_pwm_get && card.fan_pwm_get(device) > 0) {
           snprintf(key, 5, KEY_FAKESMC_FORMAT_GPUPWM, fanIndex);
           addSensor(key, TYPE_UI8, TYPE_UI8_SIZE, 0);
