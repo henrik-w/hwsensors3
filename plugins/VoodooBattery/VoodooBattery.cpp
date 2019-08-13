@@ -211,9 +211,19 @@ bool VoodooBattery::start(IOService * provider) {
                          KextOSX */);
   InfoLog("(C) 2009 Superhai, All Rights Reserved, 2017 Slice");
 
+  WorkLoop = getWorkLoop();
+  Poller = IOTimerEventSource::timerEventSource(this, OSMemberFunctionCast(IOTimerEventSource::Action,
+                                                                           this,
+                                                                           &VoodooBattery::Update));
+  if (!Poller || !WorkLoop) { return false; }
+  if (WorkLoop->addEventSource(Poller) != kIOReturnSuccess) { return false; }
+
+
   for (UInt8 i = 0; i < BatteryCount; i++) {
     DebugLog("Attaching and starting battery %s", BatteryDevice[i]->getName());
     BatteryPowerSource[i] = AppleSmartBattery::NewBattery();
+    fBatteryGate[i] = IOCommandGate::commandGate(BatteryPowerSource[i]);
+    WorkLoop->addEventSource(fBatteryGate[i]);
 
     if (BatteryPowerSource[i]) {
       if (BatteryPowerSource[i]->attach(BatteryDevice[i]) && BatteryPowerSource[i]->start(this)) {
@@ -232,14 +242,6 @@ bool VoodooBattery::start(IOService * provider) {
       InfoLog("A/C adapter %s available", AcAdapterDevice[i]->getName());
     }
   }
-
-
-  WorkLoop = getWorkLoop();
-  Poller = IOTimerEventSource::timerEventSource(this, OSMemberFunctionCast(IOTimerEventSource::Action,
-                                                                           this,
-                                                                           &VoodooBattery::Update));
-  if (!Poller || !WorkLoop) { return false; }
-  if (WorkLoop->addEventSource(Poller) != kIOReturnSuccess) { return false; }
 
   if (isBattery) {
     PMinit();                      // Powermanagement
@@ -297,10 +299,18 @@ void VoodooBattery::stop(IOService * provider) {
   sensors->flushCollection();
   Poller->cancelTimeout();
   PMstop();
+  IOWorkLoop *wl = getWorkLoop();
   for (UInt8 i = 0; i < BatteryCount; i++) {
     BatteryPowerSource[i]->ParentService = 0;
     BatteryPowerSource[i]->detach(BatteryDevice[i]);
     BatteryPowerSource[i]->stop(this);
+
+    if (wl) {
+      wl->removeEventSource(fBatteryGate[i]);
+    }
+    fBatteryGate[i]->free();
+    fBatteryGate[i] = NULL;
+
   }
 //  delete ACButton;
   IOService::stop(provider);
@@ -872,6 +882,11 @@ AppleSmartBattery * AppleSmartBattery::NewBattery(void) {
     battery->release();
   }
   return 0;
+}
+
+IOReturn AppleSmartBattery::setPowerState(unsigned long which, IOService *whom)
+{
+  return IOPMAckImplied;
 }
 
 void AppleSmartBattery::BlankOutBattery(void) {
