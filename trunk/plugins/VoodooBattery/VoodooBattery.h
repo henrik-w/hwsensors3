@@ -9,6 +9,7 @@
 #include <IOKit/acpi/IOACPIPlatformDevice.h>
 #include <IOKit/pwr_mgt/IOPMPowerSource.h>
 #include <IOKit/pwr_mgt/RootDomain.h>
+#include <IOKit/IOCommandGate.h>
 #include <IOKit/IOTimerEventSource.h>
 #include <IOKit/hidsystem/IOHIKeyboard.h>
 
@@ -227,6 +228,7 @@ protected:
 public:
 	static	AppleSmartBattery * NewBattery(void);
 	virtual IOReturn	message(UInt32 type, IOService * provider, void * argument);
+  IOReturn setPowerState(unsigned long which, IOService *whom);
 	friend class VoodooBattery;
 };
 
@@ -248,26 +250,27 @@ private:
 	bool	BatteriesConnected;
 	bool	BatteriesAreFull;
 	bool	PowerUnitIsWatt;
-    bool    firstTime;
+  bool  firstTime;
 	// *** Other ***
-	BatteryClass				Battery[MaxBatteriesSupported];
+	BatteryClass				      Battery[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		BatteryDevice[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		AcAdapterDevice[MaxAcAdaptersSupported];
-	AppleSmartBattery *			BatteryPowerSource[MaxBatteriesSupported];
+	AppleSmartBattery *			  BatteryPowerSource[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		LidDevice;
-	IOWorkLoop *				WorkLoop;
-	IOTimerEventSource *		Poller;
+	IOWorkLoop *				      WorkLoop;
+	IOTimerEventSource *		  Poller;
+  IOCommandGate *           fBatteryGate[MaxBatteriesSupported];
   Button * ACButton;
 	// *** Methods ***
 	void	Update(void);
 	void	CheckDevices(void);
-    void    GetBatteryInfoEx(UInt8 battery, OSObject * acpi);
-    void    GetBatteryInfo(UInt8 battery, OSObject * acpi);
-    void    PublishBatteryInfo(UInt8 battery, OSObject * acpi, int Ext);
+  void  GetBatteryInfoEx(UInt8 battery, OSObject * acpi);
+  void  GetBatteryInfo(UInt8 battery, OSObject * acpi);
+  void  PublishBatteryInfo(UInt8 battery, OSObject * acpi, int Ext);
 	void	BatteryInformation(UInt8 battery);
 	void	BatteryStatus(UInt8 battery);
 	void	ExternalPower(bool status);
-    bool	addSensor(const char* key, const char* type, unsigned int size, int index);
+  bool	addSensor(const char* key, const char* type, unsigned int size, int index);
 
 protected:
 //	bool	settingsChangedSinceUpdate;
