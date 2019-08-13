@@ -352,7 +352,7 @@ int SMIMonitor::i8k_get_fan_type(int fan) {
 
 
 /*
- * Read the fan nominal rpm for specific fan speed (0,1,2).
+ * Read the fan nominal rpm for specific fan speed (0,1,2) or zero
  */
 int SMIMonitor::i8k_get_fan_nominal_speed(int fan, int speed)
 {
@@ -501,6 +501,11 @@ bool SMIMonitor::start(IOService * provider)
     if (!addTachometer(fan, name ? name->getCStringNoCopy() : 0)) {
       WarningLog("Can't add tachometer sensor, key %s", key);
     }
+	snprintf(key, 5, KEY_FORMAT_FAN_MIN_SPEED, fan);
+	addSensor(key, TYPE_FPE2, 2);  //F0Mn
+	snprintf(key, 5, KEY_FORMAT_FAN_MAX_SPEED, fan);
+	addSensor(key, TYPE_FPE2, 2);  //F0Mx
+
     //add special key for fan status control
     snprintf(key, 5, "F%XAs", fan);
     addSensor(key, TYPE_UI8, 1);  //F0As
@@ -653,7 +658,21 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
           bcopy(&val, data, 1);
           return kIOReturnSuccess;
         }
-      } else if ((name[0] == 'T') && (name[2] == '0') && (name[3] == 'P')) {
+		else if ((name[2] == 'M') && (name[3] == 'n')) {
+			int fan = (int)(name[1] - '0') & 0x7;
+			value = i8k_get_fan_nominal_speed(fan, 1);
+			val = encode_fpe2(value);
+			bcopy(&val, data, 2);
+			return kIOReturnSuccess;
+		}
+		else if ((name[2] == 'M') && (name[3] == 'x')) {
+			int fan = (int)(name[1] - '0') & 0x7;
+			value = i8k_get_fan_nominal_speed(fan, 2);
+			val = encode_fpe2(value);
+			bcopy(&val, data, 2);
+			return kIOReturnSuccess;
+		}
+	  } else if ((name[0] == 'T') && (name[2] == '0') && (name[3] == 'P')) {
         if (name[1] == 'C') {
           val = i8k_get_temp(TempSensors[I8K_SMM_TEMP_CPU]);
         } else if (name[1]  == 'G') {

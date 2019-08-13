@@ -60,7 +60,7 @@ private:
   int                 i2c_get_fanspeed_mode(I2CDevPtr dev);
   
   bool			addSensor(const char* key, const char* type, unsigned int size, int index);
-	int				addTachometer(int index);
+  int				addTachometer(int index);
   
 protected:
   //    virtual float       getSensorValue(FakeSMCSensor *sensor);
