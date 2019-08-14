@@ -36,15 +36,15 @@ const UInt32	StartLocation = kIOPMPSLocationLeft;
 
 // String constants
 
-const char *	PnpDeviceIdBattery		     = "PNP0C0A";
-const char *	PnpDeviceIdLid				 = "PNP0C0D";
-const char *	PnpDeviceIdAcAdapter		 = "ACPI0003";
-const char *	AcpiStatus				     = "_STA";
-const char *	AcpiPowerSource			     = "_PSR";
-const char *	AcpiBatteryInformation		 = "_BIF";
-const char *	AcpiBatteryInformationEx	 = "_BIX";
-const char *	AcpiBatteryStatus		     = "_BST";
-const char *	LidStatus					 = "_LID";
+const char *	PnpDeviceIdBattery		      = "PNP0C0A";
+const char *	PnpDeviceIdLid				      = "PNP0C0D";
+const char *	PnpDeviceIdAcAdapter		    = "ACPI0003";
+const char *	AcpiStatus				          = "_STA";
+const char *	AcpiPowerSource			        = "_PSR";
+const char *	AcpiBatteryInformation		  = "_BIF";
+const char *	AcpiBatteryInformationEx	  = "_BIX";
+const char *	AcpiBatteryStatus		        = "_BST";
+const char *	LidStatus					          = "_LID";
 
 /*
 // _BIF
@@ -136,29 +136,34 @@ enum {
   kBFullyDischargedStatusBit        = 0x0010
 };
 
-class ButtonDevice : public IOService
+class ButtonController;
+class Button : public IOHIKeyboard
 {
-  OSDeclareDefaultStructors(ButtonDevice);
-
+  OSDeclareDefaultStructors(Button);
+private:
+//
+  bool pressed;
+  ButtonController * _controller;
 public:
+  bool isPressed();
+public:
+  virtual bool sendEvent(UInt8);
+
   virtual bool attach(IOService * provider);
   virtual void detach(IOService * provider);
 
 };
 
-class Button : public IOHIKeyboard
+class ButtonController : public IOService
 {
-  OSDeclareDefaultStructors(Button);
+  OSDeclareDefaultStructors(ButtonController);
+
 private:
-  ButtonDevice * _device;
-  bool pressed;
-public:
-  bool isPressed();
+  Button * _device;
+
 public:
   virtual bool init(OSDictionary * properties);
-  virtual bool sendEvent(UInt8);
-  virtual Button * probe(IOService * provider, SInt32 * score);
-
+  virtual ButtonController * probe(IOService * provider, SInt32 * score);
   virtual bool start(IOService * provider);
   virtual void stop(IOService * provider);
 
@@ -257,10 +262,11 @@ private:
 	IOACPIPlatformDevice *		AcAdapterDevice[MaxAcAdaptersSupported];
 	AppleSmartBattery *			  BatteryPowerSource[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		LidDevice;
+  ButtonController *        ACButtonController;
 	IOWorkLoop *				      WorkLoop;
 	IOTimerEventSource *		  Poller;
   IOCommandGate *           fBatteryGate[MaxBatteriesSupported];
-  Button * ACButton;
+//  Button * ACButton;
 	// *** Methods ***
 	void	Update(void);
 	void	CheckDevices(void);

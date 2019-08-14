@@ -52,12 +52,8 @@
 		A521BC6722F0BBF0005A5C2B /* ITEIT87x-Prefix.pch in Sources */ = {isa = PBXBuildFile; fileRef = A521BBEF22F0B3AC005A5C2B /* ITEIT87x-Prefix.pch */; };
 		A521BC6822F0BBF0005A5C2B /* ITEIT87x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A521BBF022F0B3AC005A5C2B /* ITEIT87x.cpp */; };
 		A521BC6922F0BBF0005A5C2B /* ITEIT87x.h in Sources */ = {isa = PBXBuildFile; fileRef = A521BBF122F0B3AC005A5C2B /* ITEIT87x.h */; };
-		A521BC6A22F0BC2C005A5C2B /* InfoPlist.strings in Sources */ = {isa = PBXBuildFile; fileRef = A521BBFD22F0B3AC005A5C2B /* InfoPlist.strings */; };
-		A521BC6B22F0BC2C005A5C2B /* WinbondW836x-Info.plist in Sources */ = {isa = PBXBuildFile; fileRef = A521BBFF22F0B3AC005A5C2B /* WinbondW836x-Info.plist */; };
 		A521BC6C22F0BC2C005A5C2B /* WinbondW836x-Prefix.pch in Sources */ = {isa = PBXBuildFile; fileRef = A521BC0022F0B3AC005A5C2B /* WinbondW836x-Prefix.pch */; };
 		A521BC6D22F0BC2C005A5C2B /* WinbondW836x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A521BC0122F0B3AC005A5C2B /* WinbondW836x.cpp */; };
-		A521BC6E22F0BC2C005A5C2B /* WinbondW836x.h in Sources */ = {isa = PBXBuildFile; fileRef = A521BC0222F0B3AC005A5C2B /* WinbondW836x.h */; };
-		A521BC6F22F0BC4E005A5C2B /* SuperIOFamily.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A521BBFA22F0B3AC005A5C2B /* SuperIOFamily.cpp */; };
 		A522F6761F706E0F005F81B8 /* VoodooBattery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A55E169A1F7041CF0049A107 /* VoodooBattery.cpp */; };
 		A522F6771F706E50005F81B8 /* Support.h in Headers */ = {isa = PBXBuildFile; fileRef = A55E16991F7041CF0049A107 /* Support.h */; };
 		A522F6781F706E52005F81B8 /* VoodooBattery.h in Headers */ = {isa = PBXBuildFile; fileRef = A55E169B1F7041CF0049A107 /* VoodooBattery.h */; };
@@ -1553,12 +1549,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A521BC6F22F0BC4E005A5C2B /* SuperIOFamily.cpp in Sources */,
-				A521BC6A22F0BC2C005A5C2B /* InfoPlist.strings in Sources */,
-				A521BC6B22F0BC2C005A5C2B /* WinbondW836x-Info.plist in Sources */,
 				A521BC6C22F0BC2C005A5C2B /* WinbondW836x-Prefix.pch in Sources */,
 				A521BC6D22F0BC2C005A5C2B /* WinbondW836x.cpp in Sources */,
-				A521BC6E22F0BC2C005A5C2B /* WinbondW836x.h in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3090,6 +3082,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "plugins/SuperIOSensors/WinbondW836x/WinbondW836x-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.mozodojo.W836x;
 				MODULE_VERSION = 1.3.0;
 				OTHER_CFLAGS = "-DDebug=1";
@@ -3110,9 +3103,9 @@
 				GCC_MODEL_TUNING = "";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "plugins/SuperIOSensors/WinbondW836x/WinbondW836x-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.mozodojo.W836x;
-				MODULE_VERSION = 1.3.3;
+				MODULE_VERSION = 1.3.4;
 				OTHER_CFLAGS = "-DDebug=0";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mozodojo.${PRODUCT_NAME}";
 				PRODUCT_NAME = W836x;
@@ -3133,6 +3126,7 @@
 				GCC_MODEL_TUNING = "";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "W836x-pre106-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.mozodojo.W836x;
 				MODULE_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mozodojo.${PRODUCT_NAME}";
@@ -3152,7 +3146,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "W836x-pre106-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.mozodojo.W836x;
 				MODULE_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mozodojo.${PRODUCT_NAME}";

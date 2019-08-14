@@ -32,38 +32,10 @@
 #pragma mark -
 #pragma mark IOService
 
+#undef super
 #define super IOHIKeyboard
 
 OSDefineMetaClassAndStructors(Button, IOHIKeyboard)
-
-bool Button::init(OSDictionary * properties)
-{
-  //
-  // Initialize this object's minimal state.  This is invoked right after this
-  // object is instantiated.
-  //
-
-  if (!super::init(properties))  return false;
-  pressed = false;
-  return true;
-}
-
-Button * Button::probe(IOService * provider, SInt32 * score)
-{
-  _device  = (ButtonDevice *)provider;
-  if (!super::probe(provider, score))  return 0;
-  return this;
-}
-
-bool Button::start(IOService * provider)
-{
-  if (!super::start(provider))  return false;
-  return true;
-}
-
-void Button::stop(IOService * provider)
-{
-}
 
 bool Button::sendEvent(UInt8 keyEvent)
 {
@@ -78,6 +50,57 @@ bool Button::sendEvent(UInt8 keyEvent)
 
 #undef super
 #define super IOService
+
+OSDefineMetaClassAndStructors(ButtonController, IOService)
+
+bool ButtonController::init(OSDictionary * properties)
+{
+  //
+  // Initialize this object's minimal state.  This is invoked right after this
+  // object is instantiated.
+  //
+
+  if (!super::init(properties))  return false;
+
+  return true;
+}
+
+ButtonController * ButtonController::probe(IOService * provider, SInt32 * score)
+{
+  // _device  = (ButtonDevice *)provider;
+  if (!super::probe(provider, score))  return 0;
+  return this;
+}
+
+bool ButtonController::start(IOService * provider)
+{
+  if (!super::start(provider))  return false;
+  return true;
+}
+
+void ButtonController::stop(IOService * provider)
+{
+}
+
+bool Button::attach(IOService *provider)
+{
+  if( !super::attach(provider) )  return false;
+  _controller = (ButtonController *)provider;
+  _controller->retain();
+  return true;
+}
+
+void Button::detach( IOService * provider )
+{
+  assert(_controller == provider);
+  _controller->release();
+  _controller = 0;
+
+  super::detach(provider);
+}
+
+
+
 OSDefineMetaClassAndStructors(VoodooBattery, IOService)
 
 #define kPowerStateCount 3
@@ -116,10 +139,10 @@ bool VoodooBattery::init(OSDictionary *properties) {
   if (!(sensors = OSDictionary::withCapacity(0))) {
     return false;
   }
-  ACButton = new Button;
+/*  ACButton = new Button;
   if (ACButton && !ACButton->init(properties)) {
     ACButton->release();
-  }
+  } */
 
   return true;
 }
@@ -242,6 +265,9 @@ bool VoodooBattery::start(IOService * provider) {
       InfoLog("A/C adapter %s available", AcAdapterDevice[i]->getName());
     }
   }
+  ACButtonController = new ButtonController;
+  ACButtonController->attach(AcAdapterDevice[0]);
+
 
   if (isBattery) {
     PMinit();                      // Powermanagement
