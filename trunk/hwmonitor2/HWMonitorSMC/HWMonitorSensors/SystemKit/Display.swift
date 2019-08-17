@@ -452,7 +452,8 @@ public struct Display {
             let VerticalBlanking : Int = Int(TD.VerticalBlanking) + ((Int(TD.VerticalActiveVB) & 0x0f) << 8)
             let HorizontalSyncOffset : Int = Int(TD.HorizontalSyncOffset | TD.HSO_HSPW_VSO_VSPW << 2)
             let HorizontalSyncPulse : Int = Int(TD.HorizontalSyncPulseWidth | (TD.HSO_HSPW_VSO_VSPW & 0x30) << 4)
-            let VerticalSyncOffset : Int = Int((TD.VerticalSyncOffsetVSPW & 0xF0) >> 4 | (TD.HSO_HSPW_VSO_VSPW & 0x0C) << 2)
+            let vso = (TD.VerticalSyncOffsetVSPW & 0xF0) >> 4 | (TD.HSO_HSPW_VSO_VSPW & 0x0C) << 2
+            let VerticalSyncOffset : Int = Int(vso)
             let VerticalSyncPulse = (Int(TD.VerticalSyncOffsetVSPW) & 0x0f) | ((Int(TD.HSO_HSPW_VSO_VSPW) & 0x03) << 4)
             
             let isInterlaced : Bool = (TD.Flags & 0x80) != 0

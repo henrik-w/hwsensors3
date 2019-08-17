@@ -119,10 +119,12 @@ public extension FourCharCode {
   }
   
   func toString() -> String {
+    return "\(String(describing: UnicodeScalar(self >> 24 & 0xff)!))\(String(describing: UnicodeScalar(self >> 16 & 0xff)!))\(String(describing: UnicodeScalar(self >> 8  & 0xff)!))\(String(describing: UnicodeScalar(self       & 0xff)!))"
+    /*
     return String(describing: UnicodeScalar(self >> 24 & 0xff)!) +
       String(describing: UnicodeScalar(self >> 16 & 0xff)!) +
       String(describing: UnicodeScalar(self >> 8  & 0xff)!) +
-      String(describing: UnicodeScalar(self       & 0xff)!)
+      String(describing: UnicodeScalar(self       & 0xff)!)*/
   }
 }
 
