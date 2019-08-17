@@ -94,7 +94,7 @@ class RightClickViewController: NSViewController {
       let pasteboard = NSPasteboard.general
       pasteboard.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
       if let version = Bundle.main.infoDictionary?["CFBundleVersion"]  as? String {
-        log = "HWMonitorSMC2 v" + version + " \(kTestVersion)\n\n" + log
+        log = "HWMonitorSMC2 v\(version) \(kTestVersion)\n\n\(log)"
       }
       if !pasteboard.setString(log, forType: NSPasteboard.PasteboardType.string) {
         NSSound.beep()
