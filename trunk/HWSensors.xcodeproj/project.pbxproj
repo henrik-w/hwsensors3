@@ -2757,7 +2757,7 @@
 				INFOPLIST_FILE = plugins/VoodooBattery/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.slice.VoodooBatterySMC;
-				MODULE_VERSION = 1.6.0;
+				MODULE_VERSION = 1.6.2;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_CFLAGS = (
 					"-DINFO",
@@ -2809,7 +2809,7 @@
 				INFOPLIST_FILE = plugins/VoodooBattery/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.slice.VoodooBatterySMC;
-				MODULE_VERSION = 1.6.0;
+				MODULE_VERSION = 1.6.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
 					"-DINFO",
@@ -2862,7 +2862,7 @@
 				INFOPLIST_FILE = VoodooBattery/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.slice.VoodooBatterySMC;
-				MODULE_VERSION = 1.6.0;
+				MODULE_VERSION = 1.6.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(MODULE_NAME)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2908,7 +2908,7 @@
 				INFOPLIST_FILE = VoodooBattery/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MODULE_NAME = org.slice.VoodooBatterySMC;
-				MODULE_VERSION = 1.6.0;
+				MODULE_VERSION = 1.6.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(MODULE_NAME)";
 				PRODUCT_NAME = "$(TARGET_NAME)";

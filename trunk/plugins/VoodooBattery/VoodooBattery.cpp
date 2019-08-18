@@ -48,6 +48,25 @@ bool Button::sendEvent(UInt8 keyEvent)
   return true;
 }
 
+bool Button::attach(IOService *provider)
+{
+  if( !super::attach(provider) )  return false;
+  _controller = (ButtonController *)provider;
+  _controller->retain();
+  return true;
+}
+
+void Button::detach( IOService * provider )
+{
+  assert(_controller == provider);
+  _controller->release();
+  _controller = 0;
+
+  super::detach(provider);
+}
+
+
+
 #undef super
 #define super IOService
 
@@ -67,7 +86,6 @@ bool ButtonController::init(OSDictionary * properties)
 
 ButtonController * ButtonController::probe(IOService * provider, SInt32 * score)
 {
-  // _device  = (ButtonDevice *)provider;
   if (!super::probe(provider, score))  return 0;
   return this;
 }
@@ -75,31 +93,21 @@ ButtonController * ButtonController::probe(IOService * provider, SInt32 * score)
 bool ButtonController::start(IOService * provider)
 {
   if (!super::start(provider))  return false;
+  ACButton2 = new Button;
+//  ACButton2->registerService();
   return true;
 }
 
 void ButtonController::stop(IOService * provider)
 {
+  if (ACButton2) ACButton2->release();
+  super::stop(provider);
 }
 
-bool Button::attach(IOService *provider)
+bool ButtonController::sendEvent(UInt8 keyEvent)
 {
-  if( !super::attach(provider) )  return false;
-  _controller = (ButtonController *)provider;
-  _controller->retain();
-  return true;
+  return ACButton2->sendEvent(keyEvent);
 }
-
-void Button::detach( IOService * provider )
-{
-  assert(_controller == provider);
-  _controller->release();
-  _controller = 0;
-
-  super::detach(provider);
-}
-
-
 
 OSDefineMetaClassAndStructors(VoodooBattery, IOService)
 
@@ -139,10 +147,6 @@ bool VoodooBattery::init(OSDictionary *properties) {
   if (!(sensors = OSDictionary::withCapacity(0))) {
     return false;
   }
-/*  ACButton = new Button;
-  if (ACButton && !ACButton->init(properties)) {
-    ACButton->release();
-  } */
 
   return true;
 }
@@ -185,6 +189,9 @@ IOService * VoodooBattery::probe(IOService * provider, SInt32 * score) {
     while ((entry = iterator->getNextObject())) {
       if (entry->compareName(pnp)) {
         DebugLog("Found acpi pnp ac adapter");
+        if (AcAdapterCount == 0) {
+          ACButtonDevice = OSDynamicCast(IOACPIPlatformDevice, entry);
+        }
         AcAdapterDevice[AcAdapterCount++] = OSDynamicCast(IOACPIPlatformDevice, entry);
         if (AcAdapterCount >= MaxAcAdaptersSupported) break;
       }
@@ -222,7 +229,6 @@ bool VoodooBattery::start(IOService * provider) {
     WarningLog("Can't locate fake SMC device, kext will not load");
     return false;
   }
-
 
   // Printout banner
   InfoLog("%s %s (%s) %s %s",
@@ -265,9 +271,28 @@ bool VoodooBattery::start(IOService * provider) {
       InfoLog("A/C adapter %s available", AcAdapterDevice[i]->getName());
     }
   }
-  ACButtonController = new ButtonController;
-  ACButtonController->attach(AcAdapterDevice[0]);
 
+  ACButtonController = new ButtonController;
+//  InfoLog("new");
+//  ACButtonController->attach(ACButtonDevice);
+//  InfoLog("attach");
+  ACButtonController->start(provider);
+//  InfoLog("start");
+//  ACButtonController->registerService();
+//  InfoLog("register");
+//  ACButtonController->attach(this);
+//  ACButtonController->IOService::start(this);
+
+/*  ACButton = new Button;
+  ACButton->attach(this);
+  ACButton->registerService(); */
+/*  ACButtonController = new ButtonController;
+  if (attach(ACButtonController)) {
+    InfoLog("ACButton available");
+    ACButtonController->start(provider);
+//    ACButtonController->registerService(0);
+  }
+*/
 
   if (isBattery) {
     PMinit();                      // Powermanagement
@@ -276,7 +301,7 @@ bool VoodooBattery::start(IOService * provider) {
     provider->joinPMtree(this);
   }
 
-  for (UInt32 i = 0; i < 10; i++) {
+  for (UInt32 i = 0; i < 5; i++) {
     IOSleep(1000);
     CheckDevices();
   }
@@ -321,7 +346,8 @@ bool VoodooBattery::start(IOService * provider) {
   return true;
 }
 
-void VoodooBattery::stop(IOService * provider) {
+void VoodooBattery::stop(IOService * provider)
+{
   sensors->flushCollection();
   Poller->cancelTimeout();
   PMstop();
@@ -338,7 +364,10 @@ void VoodooBattery::stop(IOService * provider) {
     fBatteryGate[i] = NULL;
 
   }
-//  delete ACButton;
+/*  ACButton->detach(this);
+  ACButton->release(); */
+  ACButtonController->detach(this);
+  ACButtonController->stop(this);
   IOService::stop(provider);
 }
 
@@ -428,12 +457,12 @@ void VoodooBattery::CheckDevices(void) {
   }
   if (wasConnected && !ExternalPowerConnected) {
     //reduce brightness
-    WarningLog("reduce brightness ");
-//    ACButton->sendEvent(0x90);
+    DebugLog("reduce brightness ");
+//    ACButtonController->sendEvent(0x90); //0x90  //0x02
   } else if (!wasConnected && ExternalPowerConnected){
     //increase brightness
-    WarningLog("increase brightness ");
-//    ACButton->sendEvent(0x91);
+    DebugLog("increase brightness ");
+//    ACButtonController->sendEvent(0x91);  //0x91  //0x03
   } //else nothing to do
   ExternalPower(ExternalPowerConnected);
   DebugLog("BatteriesConnected %x ExternalPowerConnected %x", BatteriesConnected, ExternalPowerConnected);
