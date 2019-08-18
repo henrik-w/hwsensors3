@@ -159,14 +159,14 @@ class ButtonController : public IOService
   OSDeclareDefaultStructors(ButtonController);
 
 private:
-  Button * _device;
+  Button * ACButton2;
 
 public:
   virtual bool init(OSDictionary * properties);
   virtual ButtonController * probe(IOService * provider, SInt32 * score);
   virtual bool start(IOService * provider);
   virtual void stop(IOService * provider);
-
+  virtual bool sendEvent(UInt8 keyEvent);
 };
 
 struct BatteryClass {
@@ -263,6 +263,8 @@ private:
 	AppleSmartBattery *			  BatteryPowerSource[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		LidDevice;
   ButtonController *        ACButtonController;
+  IOACPIPlatformDevice *    ACButtonDevice;
+  Button *                  ACButton;
 	IOWorkLoop *				      WorkLoop;
 	IOTimerEventSource *		  Poller;
   IOCommandGate *           fBatteryGate[MaxBatteriesSupported];
