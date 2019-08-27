@@ -147,7 +147,8 @@ bool VoodooBattery::init(OSDictionary *properties) {
   if (!(sensors = OSDictionary::withCapacity(0))) {
     return false;
   }
-
+  brightnessLevels = NULL;
+  brightnessCount = 0;
   return true;
 }
 
@@ -189,9 +190,6 @@ IOService * VoodooBattery::probe(IOService * provider, SInt32 * score) {
     while ((entry = iterator->getNextObject())) {
       if (entry->compareName(pnp)) {
         DebugLog("Found acpi pnp ac adapter");
-        if (AcAdapterCount == 0) {
-          ACButtonDevice = OSDynamicCast(IOACPIPlatformDevice, entry);
-        }
         AcAdapterDevice[AcAdapterCount++] = OSDynamicCast(IOACPIPlatformDevice, entry);
         if (AcAdapterCount >= MaxAcAdaptersSupported) break;
       }
@@ -215,6 +213,21 @@ IOService * VoodooBattery::probe(IOService * provider, SInt32 * score) {
     iterator->release();
     iterator = 0;
   }
+//PNLFDevice APP0002 PnpDeviceIdPnlf
+  iterator = IORegistryIterator::iterateOver(gIOACPIPlane, kIORegistryIterateRecursively);
+  pnp = OSString::withCString(PnpDeviceIdPnlf);
+  if (iterator) {
+    while ((entry = iterator->getNextObject())) {
+      if (entry->compareName(pnp)) {
+        DebugLog("Found PNLF device");
+        PNLFDevice = OSDynamicCast(IOACPIPlatformDevice, entry);
+        break;
+      }
+    }
+    iterator->release();
+    iterator = 0;
+  }
+
 
   return this;
 }
@@ -267,16 +280,18 @@ bool VoodooBattery::start(IOService * provider) {
   }
 
   for (UInt8 i = 0; i < AcAdapterCount; i++) {
-    if (attach(AcAdapterDevice[i])) {
+//    if (attach(AcAdapterDevice[i])) {
       InfoLog("A/C adapter %s available", AcAdapterDevice[i]->getName());
-    }
+ //   }
   }
 
-  ACButtonController = new ButtonController;
+//  if (PNLFDevice) {
+//    attach(PNLFDevice);
+//  }
+
+///  ACButtonController = new ButtonController;
 //  InfoLog("new");
-//  ACButtonController->attach(ACButtonDevice);
-//  InfoLog("attach");
-  ACButtonController->start(provider);
+///  ACButtonController->start(provider);
 //  InfoLog("start");
 //  ACButtonController->registerService();
 //  InfoLog("register");
@@ -338,9 +353,46 @@ bool VoodooBattery::start(IOService * provider) {
     snprintf(key, 5, KEY_ADAPTER_AMPERAGE);
     addSensor(key, TYPE_UI16, 2, 0);
   }
-  if (attach(LidDevice)) {
+  if (LidDevice && attach(LidDevice)) {
     snprintf(key, 5, KEY_LID_CLOSED);
     addSensor(key, TYPE_UI8, 1, 0);
+  }
+
+  while (PNLFDevice) {
+    OSObject* result = 0;
+    // check for brightness methods
+    if (kIOReturnSuccess != PNLFDevice->validateObject(MethodBCL) || kIOReturnSuccess != PNLFDevice->validateObject(MethodBCM) || kIOReturnSuccess != PNLFDevice->validateObject(MethodBQC)) {
+      WarningLog("no methods in PNLF");
+      break;
+    }
+    // methods are there, so now try to collect brightness levels
+    if (kIOReturnSuccess != PNLFDevice->evaluateObject(MethodBCL, &result)) {
+      WarningLog("no _BCL in PNLF");
+      break;
+    }
+    OSArray* array = OSDynamicCast(OSArray, result);
+    if (!array) {
+      WarningLog("_BCL returned non-array package");
+      break;
+    }
+    int count = array->getCount();
+    if (count < 4) {
+      WarningLog("_BCL returned invalid package, <4");
+      break;
+    }
+/*    brightnessCount = count;
+    brightnessLevels = new int[brightnessCount];
+    if (!brightnessLevels) {
+      WarningLog("brightnessLevels new int[] failed");
+      break;
+    }
+    for (int i = 0; i < brightnessCount; i++) {
+      OSNumber* num = OSDynamicCast(OSNumber, array->getObject(i));
+      int brightness = num ? num->unsigned32BitValue() : 0;
+      brightnessLevels[i] = brightness;
+      DebugLog("brightness[%d]=%x", i, brightness);
+    } */
+    break;
   }
 
   return true;
@@ -366,8 +418,15 @@ void VoodooBattery::stop(IOService * provider)
   }
 /*  ACButton->detach(this);
   ACButton->release(); */
-  ACButtonController->detach(this);
+//  ACButtonController->detach(this);
   ACButtonController->stop(this);
+
+  if (brightnessLevels)
+  {
+    delete[] brightnessLevels;
+    brightnessLevels = 0;
+  }
+
   IOService::stop(provider);
 }
 
@@ -455,17 +514,44 @@ void VoodooBattery::CheckDevices(void) {
   } else {
     ExternalPowerConnected = true;    // Safe to assume without batteries you need ac
   }
+
   if (wasConnected && !ExternalPowerConnected) {
     //reduce brightness
     DebugLog("reduce brightness ");
 //    ACButtonController->sendEvent(0x90); //0x90  //0x02
+//    ChangeBrightness(-4);
   } else if (!wasConnected && ExternalPowerConnected){
     //increase brightness
     DebugLog("increase brightness ");
+//    ChangeBrightness(4);
 //    ACButtonController->sendEvent(0x91);  //0x91  //0x03
   } //else nothing to do
   ExternalPower(ExternalPowerConnected);
   DebugLog("BatteriesConnected %x ExternalPowerConnected %x", BatteriesConnected, ExternalPowerConnected);
+}
+
+void VoodooBattery::ChangeBrightness(int Shift)
+{
+  UInt32 BrightBefore = 0;
+  int index = 2;
+  if (PNLFDevice && (brightnessCount > 2)) {
+    PNLFDevice->evaluateInteger(MethodBQC, &BrightBefore);
+    DebugLog("BrightBefore = %x", BrightBefore);
+    while (index < brightnessCount) {
+      if (brightnessLevels[index++] >= BrightBefore)
+        break;
+    }
+    DebugLog("at index = %d", index);
+    index += Shift - 1;
+    index = (index < brightnessCount)? index : brightnessCount - 1;
+    index = (index > 2)? index: 2;
+
+    OSNumber* num = OSNumber::withNumber(brightnessLevels[index], 32);
+    if (kIOReturnSuccess != PNLFDevice->evaluateObject(MethodBCM, NULL, (OSObject**)&num, 1)) {
+      DebugLog("_BCM returned error\n");
+    }
+    num->release();
+  }
 }
 
 void VoodooBattery::GetBatteryInfoEx(UInt8 battery, OSObject * acpi) {

@@ -501,10 +501,10 @@ bool SMIMonitor::start(IOService * provider)
     if (!addTachometer(fan, name ? name->getCStringNoCopy() : 0)) {
       WarningLog("Can't add tachometer sensor, key %s", key);
     }
-	snprintf(key, 5, KEY_FORMAT_FAN_MIN_SPEED, fan);
-	addSensor(key, TYPE_FPE2, 2);  //F0Mn
-	snprintf(key, 5, KEY_FORMAT_FAN_MAX_SPEED, fan);
-	addSensor(key, TYPE_FPE2, 2);  //F0Mx
+	  snprintf(key, 5, KEY_FORMAT_FAN_MIN_SPEED, fan);
+	  addSensor(key, TYPE_FPE2, 2);  //F0Mn
+	  snprintf(key, 5, KEY_FORMAT_FAN_MAX_SPEED, fan);
+	  addSensor(key, TYPE_FPE2, 2);  //F0Mm
 
     //add special key for fan status control
     snprintf(key, 5, "F%XAs", fan);
@@ -665,7 +665,7 @@ IOReturn SMIMonitor::callPlatformFunction(const OSSymbol *functionName,
 			bcopy(&val, data, 2);
 			return kIOReturnSuccess;
 		}
-		else if ((name[2] == 'M') && (name[3] == 'x')) {
+		else if ((name[2] == 'M') && (name[3] == 'm')) {
 			int fan = (int)(name[1] - '0') & 0x7;
 			value = i8k_get_fan_nominal_speed(fan, 2);
 			val = encode_fpe2(value);

@@ -39,12 +39,16 @@ const UInt32	StartLocation = kIOPMPSLocationLeft;
 const char *	PnpDeviceIdBattery		      = "PNP0C0A";
 const char *	PnpDeviceIdLid				      = "PNP0C0D";
 const char *	PnpDeviceIdAcAdapter		    = "ACPI0003";
+const char *  PnpDeviceIdPnlf             = "APP0002";
 const char *	AcpiStatus				          = "_STA";
 const char *	AcpiPowerSource			        = "_PSR";
 const char *	AcpiBatteryInformation		  = "_BIF";
 const char *	AcpiBatteryInformationEx	  = "_BIX";
 const char *	AcpiBatteryStatus		        = "_BST";
 const char *	LidStatus					          = "_LID";
+const char *  MethodBQC                 = "_BQC";
+const char *  MethodBCM                 = "_BCM";
+const char *  MethodBCL                 = "_BCL";
 
 /*
 // _BIF
@@ -263,11 +267,14 @@ private:
 	AppleSmartBattery *			  BatteryPowerSource[MaxBatteriesSupported];
 	IOACPIPlatformDevice *		LidDevice;
   ButtonController *        ACButtonController;
-  IOACPIPlatformDevice *    ACButtonDevice;
+  IOACPIPlatformDevice *    PNLFDevice;
   Button *                  ACButton;
 	IOWorkLoop *				      WorkLoop;
 	IOTimerEventSource *		  Poller;
   IOCommandGate *           fBatteryGate[MaxBatteriesSupported];
+  int *                     brightnessLevels;
+  int                       brightnessCount;
+
 //  Button * ACButton;
 	// *** Methods ***
 	void	Update(void);
@@ -279,6 +286,7 @@ private:
 	void	BatteryStatus(UInt8 battery);
 	void	ExternalPower(bool status);
   bool	addSensor(const char* key, const char* type, unsigned int size, int index);
+  void  ChangeBrightness(int Shift);
 
 protected:
 //	bool	settingsChangedSinceUpdate;
