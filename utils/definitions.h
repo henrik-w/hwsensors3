@@ -172,7 +172,7 @@
 
 //Smart guardian Automatic mode. The fan speed will be determined by the values in the it8718f registers.
 #define KEY_FORMAT_FAN_MIN_SPEED            "F%dMn"
-#define KEY_FORMAT_FAN_MAX_SPEED            "F%dMx"
+#define KEY_FORMAT_FAN_MAX_SPEED            "F%dMm" /* don't use F0Mx as it used by system for other purpose! */
 #define KEY_FAN_FORCE                       "FS! "
 #define KEY_FORMAT_FAN_MANUAL_DRIVE         "F%dMd"
 
