@@ -10,9 +10,14 @@
 
 #import <Foundation/Foundation.h>
 
+
+NS_ASSUME_NONNULL_BEGIN
+
 @interface NSString (TruncateToWidth)
 
-- (NSString *)stringByTruncatingToWidth:(CGFloat)width withFont:(NSFont *)font;
+- (NSString *)stringByTruncatingToWidth:(CGFloat)width withFont:(nullable NSFont *)font;
 - (NSString *)stringByTrimmingLeadingWhitespace;
 
 @end
+
+NS_ASSUME_NONNULL_END

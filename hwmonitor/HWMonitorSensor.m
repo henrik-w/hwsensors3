@@ -17,110 +17,16 @@
 #define bit_clear(x, y) ((x) &= (~y))
 
 
-int getIndexOfHexChar(char);
-float decodeNumericValue(NSData *, NSString *);
+@interface HWMonitorSensor ()
 
-int getIndexOfHexChar(char c)
-{
-    return c > 96 && c < 103 ? c - 87 : c > 47 && c < 58 ? c - 48 : 0;
-}
++ (unsigned int)swapBytes:(unsigned int)value;
++ (int)getIndexOfHexChar:(char)c;
+- (float)decodeNumericValue:(NSData *)data;
 
-float decodeNumericValue(NSData *_data, NSString *_type)
-{
-    if (_type && _data && [_type length] >= 3) {
-        if (([_type characterAtIndex:0] == 'u' ||
-             [_type characterAtIndex:0] == 's')
-            && [_type characterAtIndex:1] == 'i') {
-            BOOL signd = [_type characterAtIndex:0] == 's';
-            
-            switch ([_type characterAtIndex:2]) {
-                case '8':
-                    if ([_data length] == 1) {
-                        UInt8 encoded = 0;
-                        
-                        bcopy([_data bytes], &encoded, 1);
-                        
-                        if (signd && bit_get(encoded, BIT(7))) {
-                            bit_clear(encoded, BIT(7));
-                            return -encoded;
-                        }
-                        
-                        return encoded;
-                    }
-                    break;
-                    
-                case '1':
-                    if ([_type characterAtIndex:3] == '6' && [_data length] == 2) {
-                        UInt16 encoded = 0;
-                        
-                        bcopy([_data bytes], &encoded, 2);
-                        
-                        encoded = OSSwapBigToHostInt16(encoded);
-                        
-                        if (signd && bit_get(encoded, BIT(15))) {
-                            bit_clear(encoded, BIT(15));
-                            return -encoded;
-                        }
-                        
-                        return encoded;
-                    }
-                    break;
-                    
-                case '3':
-                    if ([_type characterAtIndex:3] == '2' && [_data length] == 4) {
-                        UInt32 encoded = 0;
-                        
-                        bcopy([_data bytes], &encoded, 4);
-                        
-                        encoded = OSSwapBigToHostInt32(encoded);
-                        
-                        if (signd && bit_get(encoded, BIT(31))) {
-                            bit_clear(encoded, BIT(31));
-                            return -encoded;
-                        }
-                        
-                        return encoded;
-                    }
-                    break;
-            }
-        }
-        else if (([_type characterAtIndex:0] == 'f' ||
-                  [_type characterAtIndex:0] == 's') &&
-                 [_type characterAtIndex:1] == 'p' && [_data length] == 2) {
-            UInt16 encoded = 0;
-            
-            bcopy([_data bytes], &encoded, 2);
-            
-            UInt8 i = getIndexOfHexChar([_type characterAtIndex:2]);
-            UInt8 f = getIndexOfHexChar([_type characterAtIndex:3]);
-            
-            if ((i + f) != (([_type characterAtIndex:0] == 's') ? 15 : 16))
-                return 0;
-            
-            UInt16 swapped = OSSwapBigToHostInt16(encoded);
-            
-            BOOL signd = [_type characterAtIndex:0] == 's';
-            BOOL minus = !!(bit_get(swapped, BIT(15)));
-            
-            if (signd && minus) bit_clear(swapped, BIT(15));
-            
-            return ((float)swapped / (float)BIT(f)) * (signd && minus ? -1 : 1);
-        }
-    }
-    
-    return 0;
-}
+@end
 
 
 @implementation HWMonitorSensor
-
-@synthesize key;
-@synthesize type;
-@synthesize group;
-@synthesize caption;
-@synthesize object;
-@synthesize favorite;
-
 
 + (unsigned int)swapBytes:(unsigned int)value
 {
@@ -128,25 +34,115 @@ float decodeNumericValue(NSData *_data, NSString *_type)
 }
 
 
++ (int)getIndexOfHexChar:(char)c
+{
+    return c > 96 && c < 103 ? c - 87 : c > 47 && c < 58 ? c - 48 : 0;
+}
+
+
+- (float)decodeNumericValue:(NSData *)data
+{
+    if (_type && data && [_type length] >= 3) {
+        if (([_type characterAtIndex:0] == 'u' ||
+             [_type characterAtIndex:0] == 's')
+            && [_type characterAtIndex:1] == 'i') {
+            BOOL signd = [_type characterAtIndex:0] == 's';
+
+            switch ([_type characterAtIndex:2]) {
+                case '8':
+                    if ([data length] == 1) {
+                        UInt8 encoded = 0;
+
+                        bcopy([data bytes], &encoded, 1);
+
+                        if (signd && bit_get(encoded, BIT(7))) {
+                            bit_clear(encoded, BIT(7));
+                            return -encoded;
+                        }
+
+                        return encoded;
+                    }
+                    break;
+
+                case '1':
+                    if ([_type characterAtIndex:3] == '6' && [data length] == 2) {
+                        UInt16 encoded = 0;
+
+                        bcopy([data bytes], &encoded, 2);
+
+                        encoded = OSSwapBigToHostInt16(encoded);
+
+                        if (signd && bit_get(encoded, BIT(15))) {
+                            bit_clear(encoded, BIT(15));
+                            return -encoded;
+                        }
+
+                        return encoded;
+                    }
+                    break;
+
+                case '3':
+                    if ([_type characterAtIndex:3] == '2' && [data length] == 4) {
+                        UInt32 encoded = 0;
+
+                        bcopy([data bytes], &encoded, 4);
+
+                        encoded = OSSwapBigToHostInt32(encoded);
+
+                        if (signd && bit_get(encoded, BIT(31))) {
+                            bit_clear(encoded, BIT(31));
+                            return -encoded;
+                        }
+
+                        return encoded;
+                    }
+                    break;
+            }
+        }
+        else if (([_type characterAtIndex:0] == 'f' ||
+                  [_type characterAtIndex:0] == 's') &&
+                  [_type characterAtIndex:1] == 'p' && [data length] == 2) {
+            UInt16 encoded = 0;
+
+            bcopy([data bytes], &encoded, 2);
+
+            UInt8 i = [HWMonitorSensor getIndexOfHexChar:[_type characterAtIndex:2]];
+            UInt8 f = [HWMonitorSensor getIndexOfHexChar:[_type characterAtIndex:3]];
+
+            if ((i + f) != (([_type characterAtIndex:0] == 's') ? 15 : 16))
+                return 0;
+
+            UInt16 swapped = OSSwapBigToHostInt16(encoded);
+
+            BOOL signd = [_type characterAtIndex:0] == 's';
+            BOOL minus = !!(bit_get(swapped, BIT(15)));
+
+            if (signd && minus) bit_clear(swapped, BIT(15));
+
+            return ((float)swapped / (float)BIT(f)) * (signd && minus ? -1 : 1);
+        }
+    }
+
+    return 0;
+}
+
+
 + (NSData *)readValueForKey:(NSString *)key
 {
     SMCOpen(&conn);
-    
-    UInt32Char_t  readkey = "\0";
-    strncpy(readkey,
-            [key cStringUsingEncoding:NSASCIIStringEncoding] == NULL
-            ? ""
-            : [key cStringUsingEncoding:NSASCIIStringEncoding], 4);
+
+    UInt32Char_t readkey = "\0";
+    const char *cKey = [key cStringUsingEncoding:NSASCIIStringEncoding];
+    strncpy(readkey, (NULL == cKey) ? "" : cKey, 4);
     readkey[4] = 0;
 
     SMCVal_t val;
     kern_return_t result = SMCReadKey(readkey, &val);
-    if (result != kIOReturnSuccess) {
-        return NULL;
-    }
-    SMCClose(conn);
-    if (val.dataSize > 0) {
-        return [NSData dataWithBytes:val.bytes length:val.dataSize];
+    if (result == kIOReturnSuccess) {
+        SMCClose(conn);
+        if (val.dataSize > 0) {
+            return [NSData dataWithBytes:val.bytes length:val.dataSize];
+        }
     }
     return nil;
 }
@@ -155,21 +151,26 @@ float decodeNumericValue(NSData *_data, NSString *_type)
 + (NSString *)getTypeOfKey:(NSString *)key
 {
     SMCOpen(&conn);
-    
-    UInt32Char_t readkey = "\0";
-    strncpy(readkey,[key cStringUsingEncoding:NSASCIIStringEncoding] == NULL
-            ? ""
-            : [key cStringUsingEncoding:NSASCIIStringEncoding], 4);
+
+    UInt32Char_t  readkey = "\0";
+    const char *cKey = [key cStringUsingEncoding:NSASCIIStringEncoding];
+    strncpy(readkey, (NULL == cKey) ? "" : cKey, 4);
     readkey[4] = 0;
 
     SMCVal_t val;
     kern_return_t result = SMCReadKey(readkey, &val);
-    if (result != kIOReturnSuccess)
-        return NULL;
-    SMCClose(conn);
-    if (val.dataSize > 0)
-        return [NSString stringWithFormat:@"%.4s", val.dataType];
+    if (result == kIOReturnSuccess) {
+        SMCClose(conn);
+        if (val.dataSize > 0)
+            return [NSString stringWithFormat:@"%.4s", val.dataType];
+    }
     return nil;
+}
+
+
++ (instancetype)monitorSensorWithKey:(NSString *)aKey andType:(NSString *)aType andGroup:(NSUInteger)aGroup withCaption:(NSString *)aCaption
+{
+    return [[self alloc] initWithKey:aKey andType:aType andGroup:aGroup withCaption:aCaption];
 }
 
 
@@ -178,62 +179,71 @@ float decodeNumericValue(NSData *_data, NSString *_type)
                         andGroup:(NSUInteger)aGroup
                      withCaption:(NSString *)aCaption
 {
-    self.type = aType;
-    self.key = aKey;
-    self.group = aGroup;
-    self.caption = aCaption;
-    
+    self = [super init];
+    if (nil == self) {
+        return nil;
+    }
+
+    _type = aType;
+    _key = aKey;
+    _group = aGroup;
+    _caption = aCaption;
+
     return self;
 }
 
 
 - (NSString *)formatedValue:(NSData *)value
 {
-    if (value != nil) {
-        float v = decodeNumericValue(value, type);
-        switch (self.group) {
-            case TemperatureSensorGroup:
-                return [[NSString alloc] initWithFormat:@"%2d°", (int)v];
-                
-            case HDSmartTempSensorGroup: {
-                unsigned int t = 0;
-                bcopy([value bytes], &t, 2);
-                //t = [NSSensor swapBytes:t] >> 8;
-                return [[NSString alloc] initWithFormat:@"%d°", t];
-            }
-                
-            case BatterySensorsGroup: {
-                NSInteger *t = (NSInteger*)[value bytes];
-                return [[NSString alloc] initWithFormat:@"%ld", *t];
-            }
-                
-            case HDSmartLifeSensorGroup: {
-                NSInteger *l = (NSInteger*)[value bytes];
-                return [[NSString alloc] initWithFormat:@"%ld%%", *l];
-            }
-                
-            case VoltageSensorGroup:
-                return [[NSString alloc] initWithFormat:@"%2.3fV", v];
-                
-            case TachometerSensorGroup:
-                return [[NSString alloc] initWithFormat:@"%drpm", (int)v];
-                
-            case FrequencySensorGroup: {
-                unsigned int MHZ = 0;
-                bcopy([value bytes], &MHZ, 2);
-                MHZ = [HWMonitorSensor swapBytes:MHZ];
-                return [[NSString alloc] initWithFormat:@"%dMHz", MHZ];
-            }
-                
-            case MultiplierSensorGroup: {
-                unsigned int mlt = 0;
-                bcopy([value bytes], &mlt, 2);
-                return [[NSString alloc] initWithFormat:@"x%1.1f", (float)mlt / 10.0];
-            } break;
-        }
+    if (value == nil) {
+        return @"-";
     }
-    
-    return @"-";
+
+    float v = [self decodeNumericValue:value];
+    switch (self.group) {
+        case TemperatureSensorGroup: {
+            return [NSString stringWithFormat:@"%2d°", (int)v];
+        }
+
+        case HDSmartTempSensorGroup: {
+            unsigned int t = 0;
+            bcopy([value bytes], &t, 2);
+            //t = [NSSensor swapBytes:t] >> 8;
+            return [NSString stringWithFormat:@"%d°", t];
+        }
+
+        case BatterySensorsGroup: {
+            NSInteger *t = (NSInteger *)[value bytes];
+            return [NSString stringWithFormat:@"%ld", *t];
+        }
+
+        case HDSmartLifeSensorGroup: {
+            NSInteger *l = (NSInteger *)[value bytes];
+            return [NSString stringWithFormat:@"%ld%%", *l];
+        }
+
+        case VoltageSensorGroup:
+            return [NSString stringWithFormat:@"%2.3fV", v];
+
+        case TachometerSensorGroup:
+            return [NSString stringWithFormat:@"%d rpm", (int)v];
+
+        case FrequencySensorGroup: {
+            unsigned int MHZ = 0;
+            bcopy([value bytes], &MHZ, 2);
+            MHZ = [HWMonitorSensor swapBytes:MHZ];
+            return [NSString stringWithFormat:@"%d MHz", MHZ];
+        }
+
+        case MultiplierSensorGroup: {
+            unsigned int mlt = 0;
+            bcopy([value bytes], &mlt, 2);
+            return [NSString stringWithFormat:@" x %1.1f", (float)mlt / 10.0];
+        }
+
+        default:
+            return @"-";
+    }
 }
 
 @end

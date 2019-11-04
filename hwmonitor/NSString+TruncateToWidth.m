@@ -13,16 +13,20 @@
 
 @implementation NSString (TruncateToWidth)
 
-- (NSString *)stringByTruncatingToWidth:(CGFloat)width withFont:(NSFont *)font
+- (NSString *)stringByTruncatingToWidth:(CGFloat)width withFont:(nullable NSFont *)font
 {
     // Create copy that will be the returned result
-    NSMutableAttributedString *truncatedString = [[NSMutableAttributedString alloc] initWithString: self];
-
-    [truncatedString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, [truncatedString length])];
-
+    NSMutableAttributedString *truncatedString = [[NSMutableAttributedString alloc] initWithString:self];
     NSMutableAttributedString *ellipsis = [[NSMutableAttributedString alloc] initWithString:@"…"];
 
-    [ellipsis addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, [ellipsis length])];
+    if (nil != font) {
+        [truncatedString addAttribute:NSFontAttributeName
+                                value:font
+                                range:NSMakeRange(0, [truncatedString length])];
+        [ellipsis addAttribute:NSFontAttributeName
+                         value:font
+                         range:NSMakeRange(0, [ellipsis length])];
+    }
 
     // Make sure string is longer than requested width
     if ([truncatedString size].width > width) {

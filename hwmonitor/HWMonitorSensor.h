@@ -21,43 +21,32 @@ enum {
 };
 typedef NSUInteger SensorGroup;
 
-@interface HWMonitorSensor : NSObject {
-    NSString *key;
-    NSString *type;
-    SensorGroup group;
-    NSString *caption;
-    id object;
-    BOOL favorite;
+NS_ASSUME_NONNULL_BEGIN
+@interface HWMonitorSensor : NSObject
 
-    // instance vars for the below @property
-    NSString *_key;
-    NSString *_type;
-    SensorGroup _group;
-    NSString *_caption;
-    id _object;
-    BOOL _favorite;
-}
-
-@property (readwrite, retain) NSString *key;
-@property (readwrite, retain) NSString *type;
-@property (readwrite, assign) SensorGroup group;
-@property (readwrite, retain) NSString *caption;
+@property (readonly, retain) NSString *key;
+@property (readonly, retain) NSString *type;
+@property (readonly, assign) SensorGroup group;
+@property (readonly, retain) NSString *caption;
 @property (readwrite, retain) id object;
 @property (readwrite, assign) BOOL favorite;
 
 
++ (nullable NSData *)readValueForKey:(NSString *)key;
++ (nullable NSString *)getTypeOfKey:(NSString *)key;
 
-+ (unsigned int)swapBytes:(unsigned int)value;
-
-+ (NSData *)readValueForKey:(NSString *)key;
-+ (NSString *)getTypeOfKey:(NSString *)key;
-
++ (instancetype)monitorSensorWithKey:(NSString *)aKey
+                             andType:(NSString *)aType
+                            andGroup:(NSUInteger)aGroup
+                         withCaption:(NSString *)aCaption;
 - (HWMonitorSensor *)initWithKey:(NSString *)aKey
                          andType:(NSString *)aType
                         andGroup:(NSUInteger)aGroup
                      withCaption:(NSString *)aCaption;
 
-- (NSString *)formatedValue:(NSData *)value;
+- (nonnull NSString *)formatedValue:(nullable NSData *)value;
 
 @end
+
+NS_ASSUME_NONNULL_END
 

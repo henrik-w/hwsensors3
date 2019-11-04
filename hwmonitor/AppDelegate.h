@@ -10,10 +10,14 @@
 #import "ISPSmartController.h"
 #include "HWMonitorSensor.h"
 
+#define useSystemDefaultMenuStyles 1
+
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
     NSStatusItem *statusItem;
+#if !useSystemDefaultMenuStyles
     NSFont *statusItemFont;
+#endif
     NSDictionary *statusItemAttributes;
 
     NSMutableArray *sensorsList;
@@ -31,7 +35,9 @@
     NSDate *lastcall;
 
     IBOutlet NSMenu *statusMenu;
+#if !useSystemDefaultMenuStyles
     NSFont *statusMenuFont;
+#endif
     NSDictionary *statusMenuAttributes;
 }
 
@@ -44,6 +50,7 @@
                             intoGroup:(SensorGroup)group;
 
 - (void)insertFooterAndTitle:(NSString *)title andImage:(NSImage *)img;
+- (void)insertFooterAndTitle:(NSString *)title andImageNamed:(NSString *)imgName;
 
 - (void)menuItemClicked:(id)sender;
 

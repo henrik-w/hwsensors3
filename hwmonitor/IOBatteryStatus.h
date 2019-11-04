@@ -26,6 +26,6 @@
 + (int)getBatteryVoltageFrom:(NSDictionary *)IOPMPowerSource;
 + (int)getBatteryAmperageFrom:(NSDictionary *)IOPMPowerSource;
 
-+ (NSDictionary *)getAllBatteriesLevel;
++ (NSDictionary<NSString *, NSData *> *)getAllBatteriesLevel;
 
 @end

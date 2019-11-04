@@ -467,13 +467,12 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
 }
 
 
-- (NSDictionary *)getSSDLife
+- (NSDictionary<NSString *, NSData *> *)getSSDLife
 {
-    NSMutableDictionary *formattedLife = [[NSMutableDictionary alloc] init];
-    NSUInteger x;
-    for (x = 0; x < [latestData count]; x++) {
-        NSMutableDictionary *diskInfo = [latestData objectAtIndex:x];
-        if (diskInfo != nil) {
+    NSMutableDictionary<NSString *, NSData *> *formattedLife = [NSMutableDictionary new];
+
+    for (NSMutableDictionary<NSString *, id> *diskInfo in latestData) {
+        if (nil != diskInfo) {
             NSNumber *lifeInfo = [diskInfo objectForKey:@"life"];
             if (lifeInfo != nil) {
                 unsigned long value = [lifeInfo intValue];
@@ -504,7 +503,7 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
 
     NSString *path;
     BOOL first = YES;
-    NSEnumerator *mountedPathsEnumerator = [[[NSWorkspace sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
+    NSEnumerator *mountedPathsEnumerator = [[[NSWorkspace  sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
     while (path = [mountedPathsEnumerator nextObject]) {
         struct statfs buffer;
         int returnnewCode = statfs([path fileSystemRepresentation], &buffer);

@@ -130,13 +130,13 @@
 }
 
 
-+ (NSDictionary *)getAllBatteriesLevel
++ (NSDictionary<NSString *, NSData *> *)getAllBatteriesLevel
 {
-    NSMutableDictionary *dataset = [[NSMutableDictionary alloc] initWithCapacity:0];
+    NSMutableDictionary<NSString *, NSData *> *dataset = [NSMutableDictionary dictionaryWithCapacity:0];
     NSInteger value = 0;
     if ([IOBatteryStatus keyboardAvailable]) {
         value = [IOBatteryStatus getKeyboardBatteryLevel];
-        [dataset setValue:[NSData dataWithBytes:&value length:sizeof(value)]  forKey:[IOBatteryStatus getKeyboardName]];
+        [dataset setValue:[NSData dataWithBytes:&value length:sizeof(value)] forKey:[IOBatteryStatus getKeyboardName]];
     }
     if ([IOBatteryStatus trackpadAvailable]) {
         value = [IOBatteryStatus getTrackpadBatteryLevel];
@@ -152,10 +152,10 @@
 
 + (NSDictionary *)getIOPMPowerSource
 {
-    CFMutableDictionaryRef matching, properties = NULL;
-    io_registry_entry_t entry = 0;
-    matching = IOServiceMatching("IOPMPowerSource");
-    entry = IOServiceGetMatchingService(kIOMasterPortDefault, matching);
+    CFMutableDictionaryRef properties = NULL;
+
+    CFMutableDictionaryRef matching = IOServiceMatching("IOPMPowerSource");
+    io_registry_entry_t entry = IOServiceGetMatchingService(kIOMasterPortDefault, matching);
     IORegistryEntryCreateCFProperties(entry, &properties, NULL, 0);
 
     NSDictionary *dict = CFBridgingRelease(properties);
