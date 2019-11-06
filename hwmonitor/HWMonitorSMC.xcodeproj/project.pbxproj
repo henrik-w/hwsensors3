@@ -150,8 +150,8 @@
 				1260E4AF16C4E78C006515EB /* ISPSmartController.m */,
 				1260E4BA16C4E7DD006515EB /* NSString+TruncateToWidth.h */,
 				1260E4BB16C4E7DD006515EB /* NSString+TruncateToWidth.m */,
-				1260E4BD16C4E7E5006515EB /* smc.c */,
 				1260E4BE16C4E7E5006515EB /* smc.h */,
+				1260E4BD16C4E7E5006515EB /* smc.c */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";

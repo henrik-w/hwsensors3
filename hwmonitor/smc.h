@@ -45,48 +45,48 @@
 #define DATATYPE_UINT32       "ui32"
 
 typedef struct {
-  char                  major;
-  char                  minor;
-  char                  build;
-  char                  reserved[1];
-  UInt16                release;
+    char major;
+    char minor;
+    char build;
+    char reserved[1];
+    UInt16 release;
 } SMCKeyData_vers_t;
 
 typedef struct {
-  UInt16                version;
-  UInt16                length;
-  UInt32                cpuPLimit;
-  UInt32                gpuPLimit;
-  UInt32                memPLimit;
+    UInt16 version;
+    UInt16 length;
+    UInt32 cpuPLimit;
+    UInt32 gpuPLimit;
+    UInt32 memPLimit;
 } SMCKeyData_pLimitData_t;
 
 typedef struct {
-  UInt32                dataSize;
-  UInt32                dataType;
-  char                  dataAttributes;
+    UInt32 dataSize;
+    UInt32 dataType;
+    char dataAttributes;
 } SMCKeyData_keyInfo_t;
 
-typedef char              SMCBytes_t[32];
+typedef char SMCBytes_t[32];
 
 typedef struct {
-  UInt32                  key;
-  SMCKeyData_vers_t       vers;
-  SMCKeyData_pLimitData_t pLimitData;
-  SMCKeyData_keyInfo_t    keyInfo;
-  char                    result;
-  char                    status;
-  char                    data8;
-  UInt32                  data32;
-  SMCBytes_t              bytes;
+    UInt32 key;
+    SMCKeyData_vers_t vers;
+    SMCKeyData_pLimitData_t pLimitData;
+    SMCKeyData_keyInfo_t keyInfo;
+    char result;
+    char status;
+    char data8;
+    UInt32 data32;
+    SMCBytes_t bytes;
 } SMCKeyData_t;
 
-typedef char              UInt32Char_t[5];
+typedef char UInt32Char_t[5];
 
 typedef struct {
-  UInt32Char_t            key;
-  UInt32                  dataSize;
-  UInt32Char_t            dataType;
-  SMCBytes_t              bytes;
+    UInt32Char_t key;
+    UInt32 dataSize;
+    UInt32Char_t dataType;
+    SMCBytes_t bytes;
 } SMCVal_t;
 
 extern io_connect_t conn;

@@ -12,27 +12,27 @@
 
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
-  NSStatusItem *          statusItem;
-  NSFont *                statusItemFont;
-  NSDictionary*           statusItemAttributes;
-  
-  NSMutableArray *        sensorsList;
-  NSDictionary *          DisksList;
-  NSDictionary *          SSDList;
-  NSDictionary *          BatteriesList;
-  
-  ISPSmartController *    smartController;
-  
-  BOOL                    isMenuVisible;
-  BOOL                    smart;
-  int                     menusCount;
-  int                     lastMenusCount;
-  
-  NSDate          *       lastcall;
-  
-  IBOutlet NSMenu *       statusMenu;
-  NSFont *                statusMenuFont;
-  NSDictionary*           statusMenuAttributes;
+    NSStatusItem *statusItem;
+    NSFont *statusItemFont;
+    NSDictionary *statusItemAttributes;
+
+    NSMutableArray *sensorsList;
+    NSDictionary *DisksList;
+    NSDictionary *SSDList;
+    NSDictionary *BatteriesList;
+
+    ISPSmartController *smartController;
+
+    BOOL isMenuVisible;
+    BOOL smart;
+    int menusCount;
+    int lastMenusCount;
+
+    NSDate *lastcall;
+
+    IBOutlet NSMenu *statusMenu;
+    NSFont *statusMenuFont;
+    NSDictionary *statusMenuAttributes;
 }
 
 @property (assign) IBOutlet NSMenuItem *startAtLoginItem;
@@ -43,7 +43,7 @@
                            andCaption:(NSString *)caption
                             intoGroup:(SensorGroup)group;
 
-- (void)insertFooterAndTitle:(NSString *)title andImage:(NSImage *) img;
+- (void)insertFooterAndTitle:(NSString *)title andImage:(NSImage *)img;
 
 - (void)menuItemClicked:(id)sender;
 

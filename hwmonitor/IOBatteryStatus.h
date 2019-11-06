@@ -18,9 +18,9 @@
 + (NSString *)getTrackpadName;
 + (NSString *)getMouseName;
 
-+ (NSInteger )getKeyboardBatteryLevel;
-+ (NSInteger )getTrackpadBatteryLevel;
-+ (NSInteger )getMouseBatteryLevel;
++ (NSInteger)getKeyboardBatteryLevel;
++ (NSInteger)getTrackpadBatteryLevel;
++ (NSInteger)getMouseBatteryLevel;
 
 + (NSDictionary *)getIOPMPowerSource;
 + (int)getBatteryVoltageFrom:(NSDictionary *)IOPMPowerSource;

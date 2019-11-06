@@ -26,7 +26,7 @@
 #define KEY_GPU_DIODE_TEMPERATURE               "TG0D"
 #define KEY_FORMAT_GPU_DIODE_TEMPERATURE        "TG%XD"
 #define	KEY_GPU_HEATSINK_TEMPERATURE            "TG0H"
-#define	KEY_FORMAT_GPU_HEATSINK_TEMPERATURE		  "TG%XH"
+#define	KEY_FORMAT_GPU_HEATSINK_TEMPERATURE	    "TG%XH"
 #define KEY_GPU_PROXIMITY_TEMPERATURE           "TG0P"
 #define KEY_FORMAT_GPU_PROXIMITY_TEMPERATURE    "TG%XP"
 #define KEY_GPU_MEMORY_TEMPERATURE              "TG0M"
@@ -143,8 +143,8 @@
 #define KEY_FAKESMC_GPU_ROP_FREQUENCY           "CG0R"
 #define KEY_FAKESMC_FORMAT_GPU_ROP_FREQUENCY    "CG%XR"
 
-#define KEY_FORMAT_NON_APPLE_CPU_FREQUENCY		  "FRC%X"
-#define KEY_FORMAT_NON_APPLE_CPU_MULTIPLIER		  "MC%XC"
+#define KEY_FORMAT_NON_APPLE_CPU_FREQUENCY	    "FRC%X"
+#define KEY_FORMAT_NON_APPLE_CPU_MULTIPLIER	    "MC%XC"
 #define KEY_FORMAT_NON_APPLE_GPU_FREQUENCY      "FGC%X"
 
 #define KEY_NON_APPLE_PACKAGE_MULTIPLIER        "MPkC"
@@ -215,80 +215,82 @@
 
 
 // Types
-#define TYPE_FPE2                               "fpe2"
-#define TYPE_FP2E                               "fp2e"
-#define TYPE_FP3D                               "fp3d"
-#define TYPE_FP4C                               "fp4c"
-#define TYPE_FP5B                               "fp5b"
-#define TYPE_FP88                               "fp88"
-#define TYPE_CH8                                "ch8*"
-#define TYPE_SP3C                               "sp3c"
-#define TYPE_SP4B                               "sp4b"
-#define TYPE_SP5A                               "sp5a"
-#define TYPE_SP78                               "sp78"
-#define TYPE_SP87                               "sp87"
-#define TYPE_UI8                                "ui8"
-#define TYPE_UI16                               "ui16"
-#define TYPE_UI32                               "ui32"
-#define TYPE_SI16                               "si16"
-#define TYPE_FLAG                               "flag"
-#define TYPE_FREQ                               "freq"
-#define TYPE_FDESC                              "{fds"
+#define TYPE_FPE2   "fpe2"
+#define TYPE_FP2E   "fp2e"
+#define TYPE_FP3D   "fp3d"
+#define TYPE_FP4C   "fp4c"
+#define TYPE_FP5B   "fp5b"
+#define TYPE_FP88   "fp88"
+#define TYPE_CH8    "ch8*"
+#define TYPE_SP3C   "sp3c"
+#define TYPE_SP4B   "sp4b"
+#define TYPE_SP5A   "sp5a"
+#define TYPE_SP78   "sp78"
+#define TYPE_SP87   "sp87"
+#define TYPE_UI8    "ui8"
+#define TYPE_UI16   "ui16"
+#define TYPE_UI32   "ui32"
+#define TYPE_SI16   "si16"
+#define TYPE_FLAG   "flag"
+#define TYPE_FREQ   "freq"
+#define TYPE_FDESC  "{fds"
 
-#define TYPE_FPXX_SIZE                          2
-#define TYPE_SPXX_SIZE                          2
-#define TYPE_UI8_SIZE                           1
-#define TYPE_UI16_SIZE                          2
-#define TYPE_UI32_SIZE                          4
-#define TYPE_SI8_SIZE                           1
-#define TYPE_SI16_SIZE                          2
-#define TYPE_SI32_SIZE                          4
+#define TYPE_FPXX_SIZE 2
+#define TYPE_SPXX_SIZE 2
+#define TYPE_UI8_SIZE  1
+#define TYPE_UI16_SIZE 2
+#define TYPE_UI32_SIZE 4
+#define TYPE_SI8_SIZE  1
+#define TYPE_SI16_SIZE 2
+#define TYPE_SI32_SIZE 4
 
 // Protocol
-#define kFakeSMCDeviceService                   "FakeSMCDevice"
-#define kFakeSMCDeviceValues                    "Values"
-#define kFakeSMCDeviceUpdateKeyValue            "updateKeyValue"
-#define kFakeSMCDevicePopulateValues            "populateValues"
-#define kFakeSMCDevicePopulateList              "populateList"
-#define kFakeSMCDeviceKeysList                  "KeysList"
-#define kFakeSuperIOMonitorModel                "Model"
+#define kFakeSMCDeviceService           "FakeSMCDevice"
+#define kFakeSMCDeviceValues            "Values"
+#define kFakeSMCDeviceUpdateKeyValue    "updateKeyValue"
+#define kFakeSMCDevicePopulateValues    "populateValues"
+#define kFakeSMCDevicePopulateList      "populateList"
+#define kFakeSMCDeviceKeysList          "KeysList"
+#define kFakeSuperIOMonitorModel        "Model"
 
-#define kFakeSMCAddKeyValue                     "kFakeSMCAddKeyValue"
-#define kFakeSMCAddKeyHandler                   "kFakeSMCAddKeyHandler"
-#define kFakeSMCSetKeyValue                     "kFakeSMCSetKeyValue"
-#define kFakeSMCGetKeyValue                     "kFakeSMCGetKeyValue"
-#define kFakeSMCGetKeyHandler                   "kFakeSMCGetKeyHandler"
-#define kFakeSMCRemoveKeyHandler                "kFakeSMCRemoveKeyHandler"
-#define kFakeSMCTakeVacantGPUIndex              "kFakeSMCTakeVacantGPUIndex"
-#define kFakeSMCReleaseGPUIndex                 "kFakeSMCReleaseGPUIndex"
-#define kFakeSMCTakeVacantFanIndex              "kFakeSMCTakeVacantFanIndex"
-#define kFakeSMCReleaseFanIndex                 "kFakeSMCReleaseFanIndex"
-#define kFakeSMCGetValueCallback                "kFakeSMCGetValueCallback"
-#define kFakeSMCSetValueCallback                "kFakeSMCSetValueCallback"
+#define kFakeSMCAddKeyValue             "kFakeSMCAddKeyValue"
+#define kFakeSMCAddKeyHandler           "kFakeSMCAddKeyHandler"
+#define kFakeSMCSetKeyValue             "kFakeSMCSetKeyValue"
+#define kFakeSMCGetKeyValue             "kFakeSMCGetKeyValue"
+#define kFakeSMCGetKeyHandler           "kFakeSMCGetKeyHandler"
+#define kFakeSMCRemoveKeyHandler        "kFakeSMCRemoveKeyHandler"
+#define kFakeSMCTakeVacantGPUIndex      "kFakeSMCTakeVacantGPUIndex"
+#define kFakeSMCReleaseGPUIndex         "kFakeSMCReleaseGPUIndex"
+#define kFakeSMCTakeVacantFanIndex      "kFakeSMCTakeVacantFanIndex"
+#define kFakeSMCReleaseFanIndex         "kFakeSMCReleaseFanIndex"
+#define kFakeSMCGetValueCallback        "kFakeSMCGetValueCallback"
+#define kFakeSMCSetValueCallback        "kFakeSMCSetValueCallback"
 
-#define kFakeSMCFirmwareVendor                  "firmware-vendor"
-#define kFakeSMCKeyPropertyPrefix               "fakesmc-key"
+#define kFakeSMCFirmwareVendor          "firmware-vendor"
+#define kFakeSMCKeyPropertyPrefix       "fakesmc-key"
 
 
 typedef enum {
-  LEFT_LOWER_FRONT, CENTER_LOWER_FRONT, RIGHT_LOWER_FRONT,
-  LEFT_MID_FRONT,   CENTER_MID_FRONT,   RIGHT_MID_FRONT,
-  LEFT_UPPER_FRONT, CENTER_UPPER_FRONT, RIGHT_UPPER_FRONT,
-  LEFT_LOWER_REAR,  CENTER_LOWER_REAR,  RIGHT_LOWER_REAR,
-  LEFT_MID_REAR,    CENTER_MID_REAR,    RIGHT_MID_REAR,
-  LEFT_UPPER_REAR,  CENTER_UPPER_REAR,  RIGHT_UPPER_REAR
+    LEFT_LOWER_FRONT, CENTER_LOWER_FRONT, RIGHT_LOWER_FRONT,
+    LEFT_MID_FRONT,   CENTER_MID_FRONT,   RIGHT_MID_FRONT,
+    LEFT_UPPER_FRONT, CENTER_UPPER_FRONT, RIGHT_UPPER_FRONT,
+    LEFT_LOWER_REAR,  CENTER_LOWER_REAR,  RIGHT_LOWER_REAR,
+    LEFT_MID_REAR,    CENTER_MID_REAR,    RIGHT_MID_REAR,
+    LEFT_UPPER_REAR,  CENTER_UPPER_REAR,  RIGHT_UPPER_REAR
 } LocationType;
 
-typedef enum { FAN_PWM_TACH, FAN_RPM, PUMP_PWM, PUMP_RPM, FAN_PWM_NOTACH, EMPTY_PLACEHOLDER } FanType;
+typedef enum {
+    FAN_PWM_TACH, FAN_RPM, PUMP_PWM, PUMP_RPM, FAN_PWM_NOTACH, EMPTY_PLACEHOLDER
+} FanType;
 
 #define DIAG_FUNCTION_STR_LEN 12
 
 typedef struct fanTypeDescStruct {
-  UInt8 type;
-  UInt8 ui8Zone;
-  UInt8 location;
-  UInt8 rsvd; // padding to get us to 16 bytes
-  char  strFunction[DIAG_FUNCTION_STR_LEN];
+    UInt8 type;
+    UInt8 ui8Zone;
+    UInt8 location;
+    UInt8 rsvd; // padding to get us to 16 bytes
+    char strFunction[DIAG_FUNCTION_STR_LEN];
 } FanTypeDescStruct;
 
 #endif

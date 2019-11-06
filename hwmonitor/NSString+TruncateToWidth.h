@@ -12,7 +12,7 @@
 
 @interface NSString (TruncateToWidth)
 
-- (NSString*)stringByTruncatingToWidth:(CGFloat)width withFont:(NSFont *)font;
-- (NSString*)stringByTrimmingLeadingWhitespace;
+- (NSString *)stringByTruncatingToWidth:(CGFloat)width withFont:(NSFont *)font;
+- (NSString *)stringByTrimmingLeadingWhitespace;
 
 @end

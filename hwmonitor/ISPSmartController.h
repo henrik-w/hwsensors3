@@ -18,16 +18,18 @@
 #define kSMARTAttributeCount 30
 
 @interface ISPSmartController : NSObject {
-  NSMutableArray *diskData;
-  NSMutableArray *latestData;
-  NSArray *temps;
-  NSArray *disksStatus;
-  NSMutableDictionary *partitionData;
-  NSNumber *temp;
-  NSNumber *life;
+    NSMutableArray *diskData;
+    NSMutableArray *latestData;
+    NSArray *temps;
+    NSArray *disksStatus;
+    NSMutableDictionary *partitionData;
+    NSNumber *temp;
+    NSNumber *life;
 }
+
 - (void)getPartitions;
 - (void)update;
 - (NSDictionary *)getDataSet /*:(int)degrees*/;
 - (NSDictionary *)getSSDLife;
+
 @end
