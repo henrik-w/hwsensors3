@@ -22,7 +22,7 @@
   NSMutableArray<NSMutableDictionary<NSString *, id> *> *latestData;
   NSArray *temps;
   NSArray *disksStatus;
-  NSMutableDictionary *partitionData;
+  NSMutableDictionary<NSString *, NSMutableArray *> *partitionData;
   NSNumber *temp;
   NSNumber *life;
 }

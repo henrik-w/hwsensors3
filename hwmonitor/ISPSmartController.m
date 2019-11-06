@@ -160,7 +160,7 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
 
     isSMARTSupported = words[kATAIdentifyCommandSetSupported] & kATASupportsSMARTMask;
     if (isSMARTSupported) {
-        NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *data = [NSMutableDictionary dictionaryWithCapacity:2];
         if (model != nil) {
             [data setObject:model forKey:@"model"];
         }
@@ -229,8 +229,7 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
         error = (*smartInterface)->SMARTValidateReadData(smartInterface, &smartData);
         if (error == kIOReturnSuccess) {
             smartDataVendorSpecifics = *((IOATASmartVendorSpecificData *)&(smartData.vendorSpecific1));
-            int currentAttributeIndex = 0;
-            for (currentAttributeIndex = 0; currentAttributeIndex < kSMARTAttributeCount; currentAttributeIndex++) {
+            for (int currentAttributeIndex = 0; currentAttributeIndex < kSMARTAttributeCount; currentAttributeIndex++) {
                 IOATASmartAttribute currentAttribute = smartDataVendorSpecifics.vendorAttributes[currentAttributeIndex];
                 if (currentAttribute.attributeId == kSMARTsDriveWearLevelingCount) {
                     UInt8 raw = currentAttribute.current;
@@ -302,8 +301,7 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
         error = (*smartInterface)->SMARTValidateReadData(smartInterface, &smartData);
         if (error == kIOReturnSuccess) {
             smartDataVendorSpecifics = *((IOATASmartVendorSpecificData *)&(smartData.vendorSpecific1));
-            int currentAttributeIndex = 0;
-            for (currentAttributeIndex = 0; currentAttributeIndex < kSMARTAttributeCount; currentAttributeIndex++) {
+            for (int currentAttributeIndex = 0; currentAttributeIndex < kSMARTAttributeCount; currentAttributeIndex++) {
                 IOATASmartAttribute currentAttribute = smartDataVendorSpecifics.vendorAttributes[currentAttributeIndex];
                 if (currentAttribute.attributeId == kWindowSMARTsDriveTempAttribute ||
                     currentAttribute.attributeId == kWindowSMARTsDriveTempAttribute2) {
@@ -394,15 +392,15 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
 
 - (void)update
 {
-    diskData = [[NSMutableArray alloc] init];
+    diskData = [NSMutableArray array];
     IOReturn error = kIOReturnSuccess;
-    NSMutableDictionary *matchingDict = [[NSMutableDictionary alloc] initWithCapacity:8];
-    NSMutableDictionary *subDict = [[NSMutableDictionary alloc] initWithCapacity:8];
+    NSMutableDictionary *matchingDict = [NSMutableDictionary dictionaryWithCapacity:8];
+    NSMutableDictionary *subDict = [NSMutableDictionary dictionaryWithCapacity:8];
     io_iterator_t iter = IO_OBJECT_NULL;
     io_object_t obj = IO_OBJECT_NULL;
 
-    [subDict setObject:[NSNumber numberWithBool:YES] forKey:[NSString stringWithCString:kIOPropertySMARTCapableKey encoding:NSUTF8StringEncoding]];
-    [matchingDict setObject:subDict forKey:[NSString stringWithCString:kIOPropertyMatchKey encoding:NSUTF8StringEncoding]];
+    [subDict setObject:[NSNumber numberWithBool:YES] forKey:@kIOPropertySMARTCapableKey];
+    [matchingDict setObject:subDict forKey:@kIOPropertyMatchKey];
 
     error = IOServiceGetMatchingServices(kIOMasterPortDefault, CFBridgingRetain(matchingDict), &iter);
     if (error == kIOReturnSuccess) {
@@ -412,7 +410,7 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
         }
     }
 
-    if ([diskData count] == 0) {
+    if (0 == diskData.count) {
         iter = IO_OBJECT_NULL;
         matchingDict = CFBridgingRelease(IOServiceMatching("IOATABlockStorageDevice"));
 
@@ -440,53 +438,52 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
     }
  */
 
-    NSMutableDictionary *formattedTemps = [[NSMutableDictionary alloc] init];
-    NSUInteger x;
-    for (x = 0; x < [latestData count]; x++) {
-        NSMutableDictionary *diskInfo = [latestData objectAtIndex:x];
-        if (diskInfo != nil) {
-            NSNumber *tempInfo = [diskInfo objectForKey:@"temp"];
-            if (tempInfo != nil) {
-                unsigned long value = [tempInfo intValue];
-                //value = convertTemperature(degrees, value);
-
-                NSString *name;
-                if ([diskInfo objectForKey:@"partitions"]) {
-                    name = [NSString stringWithFormat:@"%@", [[diskInfo objectForKey:@"partitions"] componentsJoinedByString:@", "]];
-                } else {
-                    name = [NSString stringWithFormat:@"%@ s/n %@", [[diskInfo objectForKey:@"model"] stringByTrimmingLeadingWhitespace],[[diskInfo objectForKey:@"serial"] stringByTrimmingLeadingWhitespace] ];
-                }
-
-                [formattedTemps setObject:[NSData dataWithBytes:&value length:sizeof(value)] forKey:name];
-//                [diskInfo setObject:life forKey:@"life"];
-//                [diskData addObject:diskInfo];
-            }
+    NSMutableDictionary *formattedTemps = [NSMutableDictionary dictionary];
+    [latestData enumerateObjectsUsingBlock:^(NSMutableDictionary<NSString *, id> *diskInfo, NSUInteger idx, BOOL *stop) {
+        NSNumber *tempInfo = [diskInfo objectForKey:@"temp"];
+        if (nil == tempInfo) {
+            return;
         }
-    }
+
+        unsigned long value = [tempInfo intValue];
+        //value = convertTemperature(degrees, value);
+
+        NSString *name;
+        if (nil != [diskInfo objectForKey:@"partitions"]) {
+            name = [NSString stringWithFormat:@"%@", [[diskInfo objectForKey:@"partitions"] componentsJoinedByString:@", "]];
+        } else {
+            name = [NSString stringWithFormat:@"%@ s/n %@", [[diskInfo objectForKey:@"model"] stringByTrimmingLeadingWhitespace], [[diskInfo objectForKey:@"serial"] stringByTrimmingLeadingWhitespace]];
+        }
+
+        [formattedTemps setObject:[NSData dataWithBytes:&value length:sizeof(value)] forKey:name];
+//        [diskInfo setObject:life forKey:@"life"];
+//        [diskData addObject:diskInfo];
+    }];
+
     return formattedTemps;
 }
 
 
 - (NSDictionary<NSString *, NSData *> *)getSSDLife
 {
-    NSMutableDictionary<NSString *, NSData *> *formattedLife = [NSMutableDictionary new];
+    NSMutableDictionary<NSString *, NSData *> *formattedLife = [NSMutableDictionary dictionaryWithCapacity:latestData.count];
 
-    for (NSMutableDictionary<NSString *, id> *diskInfo in latestData) {
-        if (nil != diskInfo) {
-            NSNumber *lifeInfo = [diskInfo objectForKey:@"life"];
-            if (lifeInfo != nil) {
-                unsigned long value = [lifeInfo intValue];
-                NSString *name;
-                if ([diskInfo objectForKey:@"partitions"]) {
-                    name = [NSString stringWithFormat:@"_%@", [[diskInfo objectForKey:@"partitions"] componentsJoinedByString:@"_"]];
-                } else {
-                    name = [NSString stringWithFormat:@"%@ s/n:%@", [[diskInfo objectForKey:@"model"] stringByTrimmingLeadingWhitespace], [[diskInfo objectForKey:@"serial"] stringByTrimmingLeadingWhitespace]];
-                }
-
-                [formattedLife setObject:[NSData dataWithBytes:&value length:sizeof(value)] forKey:name];
-            }
+    [latestData enumerateObjectsUsingBlock:^(NSMutableDictionary<NSString *, id> *diskInfo, NSUInteger idx, BOOL *stop) {
+        NSNumber *lifeInfo = [diskInfo objectForKey:@"life"];
+        if (nil == lifeInfo) {
+            return;
         }
-    }
+
+        unsigned long value = [lifeInfo intValue];
+        NSString *name;
+        if (nil != [diskInfo objectForKey:@"partitions"]) {
+            name = [NSString stringWithFormat:@"_%@", [[diskInfo objectForKey:@"partitions"] componentsJoinedByString:@"_"]];
+        } else {
+            name = [NSString stringWithFormat:@"%@ s/n:%@", [[diskInfo objectForKey:@"model"] stringByTrimmingLeadingWhitespace], [[diskInfo objectForKey:@"serial"] stringByTrimmingLeadingWhitespace]];
+        }
+
+        [formattedLife setObject:[NSData dataWithBytes:&value length:sizeof(value)] forKey:name];
+    }];
 
     return formattedLife;
 }
@@ -494,48 +491,41 @@ void SwapASCIIString(UInt16 *buffer, UInt16 length)
 
 - (void)getPartitions
 {
-    if (partitionData) {
+    if (nil != partitionData) {
         [partitionData removeAllObjects];
+    } else {
+        partitionData = [NSMutableDictionary dictionary];
     }
 
-    partitionData = [[NSMutableDictionary alloc] init];
-
-
-    NSString *path;
-    BOOL first = YES;
-    NSEnumerator *mountedPathsEnumerator = [[[NSWorkspace  sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
-    while (path = [mountedPathsEnumerator nextObject]) {
+    [[[NSWorkspace sharedWorkspace] mountedLocalVolumePaths] enumerateObjectsUsingBlock:^(NSString *path, NSUInteger idx, BOOL *stop) {
         struct statfs buffer;
         int returnnewCode = statfs([path fileSystemRepresentation], &buffer);
-        if (returnnewCode == 0) {
-            NSRange start = [path rangeOfString:@"/Volumes/"];
-            if (first == NO && start.length == 0){
-                continue;
-            }
+        if (0 != returnnewCode) {
+            return;
+        }
 
-            if (first) {
-                first = NO;
-            }
+        NSRange start = [path rangeOfString:@"/Volumes/"];
+        if (0 != idx && start.length == 0) {
+            return;
+        }
 
-            NSString *name = [[NSString stringWithFormat:@"%s", buffer.f_mntfromname] lastPathComponent];
-
-            if ([name hasPrefix:@"disk"] && [name length] > 4) {
-                NSString *newName = [name substringFromIndex:4];
-                NSRange paritionLocation = [newName rangeOfString:@"s"];
-                if (paritionLocation.length != 0) {
-                    name = [NSString stringWithFormat:@"disk%@", [newName substringToIndex: paritionLocation.location]];
-                }
-            }
-
-            if ([partitionData objectForKey:name]) {
-                [[partitionData objectForKey:name] addObject:[[NSFileManager defaultManager] displayNameAtPath:path]];
-            } else {
-                NSMutableArray *paritions = [[NSMutableArray alloc] init];
-                [paritions addObject:[[NSFileManager defaultManager] displayNameAtPath:path]];
-                [partitionData setObject:paritions forKey:name];
+        NSString *name = [[NSString stringWithFormat:@"%s", buffer.f_mntfromname] lastPathComponent];
+        if (4 < name.length && [name hasPrefix:@"disk"]) {
+            NSString *newName = [name substringFromIndex:4];
+            NSRange paritionLocation = [newName rangeOfString:@"s"];
+            if (paritionLocation.length != 0) {
+                name = [NSString stringWithFormat:@"disk%@", [newName substringToIndex: paritionLocation.location]];
             }
         }
-    }
+
+        NSMutableArray *partitions = [partitionData objectForKey:name];
+        if (nil != partitions) {
+            [partitions addObject:[[NSFileManager defaultManager] displayNameAtPath:path]];
+        } else {
+            partitions = [NSMutableArray arrayWithObject:[[NSFileManager defaultManager] displayNameAtPath:path]];
+            [partitionData setObject:partitions forKey:name];
+        }
+    }];
 }
 
 @end

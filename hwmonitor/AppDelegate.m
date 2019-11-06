@@ -21,11 +21,15 @@
 
 @implementation AppDelegate
 
-- (id)init
+- (instancetype)init
 {
-    if (self = [super init]) {
-        lastcall = [NSDate date];
+    self = [super init];
+    if (nil == self) {
+        return nil;
     }
+
+    lastcall = [NSDate date];
+
     return self;
 }
 
@@ -33,15 +37,9 @@
 - (void)updateTitles
 {
     NSDictionary *pb = [IOBatteryStatus getIOPMPowerSource];
-    NSEnumerator *enumerator = nil;
-    HWMonitorSensor *sensor = nil;
 
-    NSMutableString *statusString = [[NSMutableString alloc] init];
     int count = 0;
-
-    NSMutableDictionary *values;
-
-    values = [NSMutableDictionary dictionaryWithCapacity:0];
+    NSMutableDictionary<NSString *, NSData *> *values = [NSMutableDictionary dictionaryWithCapacity:count];
 
     if (smart) {
         if (fabs([lastcall timeIntervalSinceNow]) > SMART_UPDATE_INTERVAL) {
@@ -52,16 +50,16 @@
         [values addEntriesFromDictionary:[smartController getDataSet /*:1*/]];
     }
 
-    NSDictionary *temp = [IOBatteryStatus getAllBatteriesLevel];
-    if ([temp count] >0) {
+    NSDictionary<NSString *, NSData *> *temp = [IOBatteryStatus getAllBatteriesLevel];
+    if (nil != temp && 0 < temp.count) {
         [values addEntriesFromDictionary:temp];
 
         BOOL __block needFooter = YES;
-        [temp enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [temp enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSData *obj, BOOL *stop) {
             BOOL found = NO;
-            NSEnumerator *sensorsEnumerator = [sensorsList objectEnumerator];
+            NSEnumerator<HWMonitorSensor *> *sensorsEnumerator = [sensorsList objectEnumerator];
             HWMonitorSensor *localSensor;
-            while (localSensor = (HWMonitorSensor *)[sensorsEnumerator nextObject]) {
+            while (localSensor = [sensorsEnumerator nextObject]) {
                 if ([key isEqualToString:[localSensor key]]) {
                     found = YES;
                     needFooter = NO;
@@ -77,13 +75,18 @@
         }
     }
 
-    if (values) {
-        enumerator = [sensorsList objectEnumerator];
+    NSMutableString *statusString = [NSMutableString new];
 
-        while (sensor = (HWMonitorSensor *)[enumerator nextObject]) {
+    if (nil != values) {
+        NSEnumerator<HWMonitorSensor *> *enumerator = [sensorsList objectEnumerator];
+
+        HWMonitorSensor *sensor = nil;
+        while (sensor = [enumerator nextObject]) {
             NSString *value = nil;
+            NSMenuItem *menuItem = [sensor object];
+
             if ([[sensor key] isEqualToString:@KEY_BAT0_VOLTAGE] || [[sensor key] isEqualToString:@KEY_BAT0_AMPERAGE]) {
-                if (pb) {
+                if (nil != pb) {
                     int v = ([[sensor key] isEqualToString:@KEY_BAT0_VOLTAGE] ?
                              [IOBatteryStatus getBatteryVoltageFrom:pb] :
                              [IOBatteryStatus getBatteryAmperageFrom:pb]);
@@ -91,32 +94,30 @@
                     if (v > BAT0_NOT_FOUND) {
                         value = [NSString stringWithFormat:@"%d", v];
                     } else {
-                        [[(NSMenuItem *)[sensor object] menu] removeItem:(NSMenuItem *)[sensor object]];
+                        [[menuItem menu] removeItem:menuItem];
                     }
                 } else {
                     // workaround for VoodooBatterySMC when no battery is present
                     value = nil;
-                    [[(NSMenuItem *)[sensor object] menu] removeItem:(NSMenuItem *)[sensor object]];
+                    [[menuItem menu] removeItem:menuItem];
                 }
             } else {
-                value = [sensor formatedValue:
-                         [values objectForKey:[sensor key]] ?
-                         [values objectForKey:[sensor key]] :
-                         [HWMonitorSensor readValueForKey:[sensor key]]];
+                NSData *v = [values objectForKey:[sensor key]];
+                value = [sensor formatedValue:(nil != v) ? v : [HWMonitorSensor readValueForKey:[sensor key]]];
             }
 
-            if ((value != nil) && ![value isEqualToString:@""]) {
+            if ((nil != value) && ![value isEqualToString:@""]) {
                 if (isMenuVisible) {
                     // Update menu item title
                     NSString *menuItemTitle = [sensor caption];
                     menuItemTitle = [NSString stringWithFormat:@"%@\t%@", menuItemTitle, value];
 
-                    if (![[(NSMenuItem *)[sensor object] title] isEqualToString:menuItemTitle]) {
-                        [(NSMenuItem *)[sensor object] setAttributedTitle:[[NSAttributedString alloc] initWithString:menuItemTitle attributes:statusMenuAttributes]];
+                    if (![[menuItem title] isEqualToString:menuItemTitle]) {
+                        [menuItem setAttributedTitle:[[NSAttributedString alloc] initWithString:menuItemTitle attributes:statusMenuAttributes]];
                     }
                 }
 
-                if ([sensor favorite]) {
+                if (sensor.isFavorite) {
                     [statusString appendString:@" "];
                     [statusString appendString:value];
                     count++;
@@ -160,7 +161,7 @@
 
     [menuItem setRepresentedObject:sensor];
     [menuItem setAction:@selector(menuItemClicked:)];
-    [menuItem setState:[sensor favorite]? YES : NO];
+    [menuItem setState:[sensor isFavorite]];
 
     [statusMenu insertItem:menuItem atIndex:menusCount++];
 

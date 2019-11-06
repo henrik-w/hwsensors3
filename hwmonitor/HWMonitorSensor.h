@@ -29,7 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly, assign) SensorGroup group;
 @property (readonly, retain) NSString *caption;
 @property (readwrite, retain) id object;
-@property (readwrite, assign) BOOL favorite;
+@property (readwrite, assign, getter=isFavorite) BOOL favorite;
 
 
 + (nullable NSData *)readValueForKey:(NSString *)key;

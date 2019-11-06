@@ -13,17 +13,19 @@
 #define useSystemDefaultMenuStyles 1
 
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
     NSStatusItem *statusItem;
 #if !useSystemDefaultMenuStyles
     NSFont *statusItemFont;
 #endif
-    NSDictionary *statusItemAttributes;
+    NSDictionary<NSAttributedStringKey, id> *statusItemAttributes;
 
-    NSMutableArray *sensorsList;
-    NSDictionary *DisksList;
-    NSDictionary *SSDList;
-    NSDictionary *BatteriesList;
+    NSMutableArray<HWMonitorSensor *> *sensorsList;
+    NSDictionary<NSString *, id> *DisksList;
+    NSDictionary<NSString *, id> *SSDList;
+    NSDictionary<NSString *, id> *BatteriesList;
 
     ISPSmartController *smartController;
 
@@ -38,20 +40,22 @@
 #if !useSystemDefaultMenuStyles
     NSFont *statusMenuFont;
 #endif
-    NSDictionary *statusMenuAttributes;
+    NSDictionary<NSAttributedStringKey, id> *statusMenuAttributes;
 }
 
 @property (assign) IBOutlet NSMenuItem *startAtLoginItem;
 
 - (void)updateTitles;
-- (HWMonitorSensor *)addSensorWithKey:(NSString *)key
-                              andType:(NSString *)aType
-                           andCaption:(NSString *)caption
-                            intoGroup:(SensorGroup)group;
+- (nullable HWMonitorSensor *)addSensorWithKey:(NSString *)key
+                                       andType:(NSString *)aType
+                                    andCaption:(NSString *)caption
+                                     intoGroup:(SensorGroup)group;
 
-- (void)insertFooterAndTitle:(NSString *)title andImage:(NSImage *)img;
 - (void)insertFooterAndTitle:(NSString *)title andImageNamed:(NSString *)imgName;
+- (void)insertFooterAndTitle:(NSString *)title andImage:(nullable NSImage *)img;
 
 - (void)menuItemClicked:(id)sender;
 
 @end
+
+NS_ASSUME_NONNULL_END
