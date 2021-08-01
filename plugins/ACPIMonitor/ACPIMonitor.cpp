@@ -22,19 +22,28 @@
 OSDefineMetaClassAndStructors(ACPIMonitor, IOService)
 
 bool ACPIMonitor::addSensor(const char* method, const char* key, const char* type, unsigned long long size) {
-	if (kIOReturnSuccess == fakeSMC->callPlatformFunction(kFakeSMCAddKeyHandler,
-                                                        false,
-                                                        (void *)key,
-                                                        (void *)type,
-                                                        (void *)size,
-                                                        (void *)this)) {
-    if (sensors && sensors->setObject(key, OSString::withCString(method))) {
-      InfoLog("%s registered", method);
-      return true;
+    if (NULL == sensors) {
+        return false;
     }
-  }
-	return false;
+    bool successfullyAdded = false;
+    if (kIOReturnSuccess == fakeSMC->callPlatformFunction(kFakeSMCAddKeyHandler,
+                                                          false,
+                                                          (void *)key,
+                                                          (void *)type,
+                                                          (void *)size,
+                                                          (void *)this)) {
+        OSString *methodStr = OSString::withCString(method);
+        if (NULL != methodStr) {
+            successfullyAdded = sensors->setObject(key, methodStr);
+            methodStr->release();
+            if (successfullyAdded) {
+                InfoLog("%s registered", method);
+            }
+        }
+    }
+    return successfullyAdded;
 }
+
 // for example addTachometer("FAN0", "System Fan");
 bool ACPIMonitor::addTachometer(const char* method, const char* id) {
 	UInt8 length = 0;
@@ -61,7 +70,7 @@ bool ACPIMonitor::addTachometer(const char* method, const char* id) {
         fds.type = FAN_PWM_TACH;
         fds.ui8Zone = 1;
         fds.location = LEFT_LOWER_FRONT;
-        strncpy(fds.strFunction, id, DIAG_FUNCTION_STR_LEN);
+        strlcpy(fds.strFunction, id, DIAG_FUNCTION_STR_LEN);
         
         if (kIOReturnSuccess != fakeSMC->callPlatformFunction(kFakeSMCAddKeyValue,
                                                               false,
@@ -308,6 +317,7 @@ bool ACPIMonitor::start(IOService * provider) {
 					WarningLog(" no value for key %s", acpiName);
 				}
 			}
+            iter->release();
 		} else {
 			WarningLog(" can't interate keysToAdd");
 		}
@@ -384,7 +394,9 @@ IOReturn ACPIMonitor::callPlatformFunction(const OSSymbol *functionName,
         } else {
           val = *(UInt16*)data;
         }
-        params[0] = OSDynamicCast(OSObject, OSNumber::withNumber((unsigned long long)val, 32));
+          OSNumber *valObj = OSNumber::withNumber((unsigned long long)val, 32);
+          params[0] = OSDynamicCast(OSObject, valObj);
+          valObj->release();
         return acpiDevice->evaluateInteger(key->getCStringNoCopy(), &value, params, 1);
 
         /*
